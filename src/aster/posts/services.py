@@ -1,0 +1,39 @@
+from typing import Sequence
+
+from sqlalchemy import desc, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
+
+from .models import Post
+from .schemas import PostCreate
+
+
+async def create_post(session: AsyncSession, *, data_in: PostCreate) -> Post:
+    post = Post(**data_in.dict())
+    session.add(post)
+    await session.flush()
+    return post
+
+
+async def get_post_by_id(session: AsyncSession, *, post_id: int) -> Post | None:
+    res = await session.execute(select(Post).where(Post.id == post_id))
+    return res.scalar_one_or_none()
+
+
+async def list_posts(
+    session: AsyncSession, *, uid: int, limit: int = 10, offset: int = 0
+) -> Sequence[Post]:
+    res = await session.execute(
+        select(Post)
+        .options(joinedload(Post.user))
+        .where(Post.uid == uid)
+        .limit(limit)
+        .offset(offset)
+        .order_by(desc(Post.created_at))
+    )
+    return res.scalars().all()
+
+
+async def delete_post(session: AsyncSession, *, post: Post) -> None:
+    await session.delete(post)
+    await session.flush()

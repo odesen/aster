@@ -1,0 +1,72 @@
+[tool.poetry]
+name = "aster"
+version = "0.1.0"
+description = ""
+authors = ["odesen <0d3s3n@gmail.com>"]
+readme = "README.md"
+packages = [{include = "aster", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.87.0"
+pydantic = "^1.10.2"
+sqlalchemy = {version = "^2.0.0b3", allow-prereleases = true}
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+opentelemetry-api = "^1.14.0"
+opentelemetry-sdk = "^1.14.0"
+opentelemetry-instrumentation-fastapi = "^0.35b0"
+opentelemetry-instrumentation-sqlalchemy = "^0.35b0"
+opentelemetry-distro = "^0.35b0"
+orjson = "^3.8.2"
+python-dotenv = "^0.21.0"
+psycopg = "^3.1.4"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^6.0.0"
+black = "^22.10.0"
+isort = "^5.10.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.114"
+uvicorn = {extras = ["standard"], version = "^0.20.0"}
+mypy = "^0.991"
+pre-commit = "^2.21.0"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "*"
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.isort]
+atomic = true
+profile = "black"
+line_length = 88
+skip_gitignore = true
+
+[tool.mypy]
+strict = true
+
+[tool.ruff]
+select = [
+    "E",
+    "W",
+    "F",
+    "C",
+    "B",
+]
+
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
