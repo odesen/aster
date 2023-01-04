@@ -3,8 +3,15 @@ from typing import Any
 
 from pydantic import BaseSettings, PostgresDsn, SecretStr, validator
 
+from aster import ASTER_ENV_PREFIX
 
-class AppSettings(BaseSettings, env_file=".env", env_file_encoding="utf-8"):
+
+class AppSettings(
+    BaseSettings,
+    env_file=".env",
+    env_file_encoding="utf-8",
+    env_prefix=ASTER_ENV_PREFIX,
+):
     database_scheme: str = "postgresql+psycopg"
     database_hostname: str
     database_credential_user: SecretStr
