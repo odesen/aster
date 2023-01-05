@@ -13,10 +13,13 @@ class UserCreate(UserBase):
     password: SecretStr = Field(max_length=256)
 
 
-class UserView(UserBase, orm_mode=True):
+class UserView(UserBase):
     id: int
     created_at: datetime
     updated_at: datetime
+
+    class Config:
+        orm_mode = True
 
 
 class Token(BaseModel):

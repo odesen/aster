@@ -20,7 +20,7 @@ class AppSettings(
     database_port: int = 5432
     database_engine_pool_size: int = 20
     database_engine_max_overflow: int = 0
-    database_uri: PostgresDsn = None  # type: ignore
+    database_uri: PostgresDsn = None
 
     @validator("database_uri", pre=True)
     def assemble_db_connection(cls, v: str | None, values: dict[str, Any]) -> Any:

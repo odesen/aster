@@ -6,7 +6,7 @@ from sqlalchemy.orm import DeclarativeBase, MappedAsDataclass, mapped_column
 from aster.database import metadata
 
 
-class Base(MappedAsDataclass, DeclarativeBase, kw_only=True):
+class Base(MappedAsDataclass, DeclarativeBase):
     metadata = metadata
     """subclasses will be converted to dataclasses"""
 
