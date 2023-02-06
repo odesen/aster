@@ -1,6 +1,7 @@
 {
     "python.formatting.provider": "none",
     "python.linting.mypyEnabled": true,
+    "mypy.runUsingActiveInterpreter": true,
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter",
         "editor.codeActionsOnSave": {

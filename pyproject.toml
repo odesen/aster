@@ -9,7 +9,7 @@ packages = [{include = "aster", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 fastapi = "^0.89.1"
-pydantic = "^1.10.2"
+pydantic = "^1.10.4"
 sqlalchemy = "^2.0.1"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
@@ -30,7 +30,7 @@ isort = "^5.10.1"
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.241"
 uvicorn = {extras = ["standard"], version = "^0.20.0"}
-mypy = "^0.991"
+mypy = "^1.0"
 pre-commit = "^2.21.0"
 
 [tool.poetry.group.docs]
