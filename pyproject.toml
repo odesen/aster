@@ -8,7 +8,7 @@ packages = [{include = "aster", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.89.1"
+fastapi = "^0.91.0"
 pydantic = "^1.10.4"
 sqlalchemy = "^2.0.1"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
