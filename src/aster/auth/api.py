@@ -1,23 +1,24 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from aster.database import get_session
-from aster.responses import ORJSONModelJSONResponse
 
 from . import dependencies, models, schemas, services
 
 users_router = APIRouter(prefix="/users")
 
 
-@users_router.post("", response_model=schemas.UserView)
+@users_router.post(
+    "", response_model=schemas.UserView, status_code=status.HTTP_201_CREATED
+)
 async def create_user(
     data_in: schemas.UserCreate, session: AsyncSession = Depends(get_session)
-) -> Any:
+) -> Response:
     user = await services.create_user(session, data_in=data_in)
     await session.commit()
-    return ORJSONModelJSONResponse(schemas.UserView.from_orm(user))
+    return Response(schemas.UserView.from_orm(user).json(), status.HTTP_201_CREATED)
 
 
 # @users_router.get("")
@@ -28,8 +29,8 @@ async def create_user(
 @users_router.get("/{username}", response_model=schemas.UserView)
 async def get_user(
     user: models.User = Depends(dependencies.get_valid_user_by_username),
-) -> Any:
-    return ORJSONModelJSONResponse(schemas.UserView.from_orm(user))
+) -> Response:
+    return Response(schemas.UserView.from_orm(user).json())
 
 
 user_router = APIRouter(
@@ -41,7 +42,7 @@ user_router = APIRouter(
 async def get_authentificated_user(
     user: models.User = Depends(dependencies.get_current_active_user),
 ) -> Any:
-    return ORJSONModelJSONResponse(schemas.UserView.from_orm(user))
+    return Response(schemas.UserView.from_orm(user).json())
 
 
 # @user_router.patch("")
