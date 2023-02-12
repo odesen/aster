@@ -28,17 +28,12 @@ repos:
     rev: 5.10.1
     hooks:
     -   id: isort
-        name: isort (python)
-    -   id: isort
-        name: isort (cython)
-        types: [cython]
-    -   id: isort
-        name: isort (pyi)
-        types: [pyi]
+        args: [--settings-path=pyproject.toml]
 -   repo: https://github.com/psf/black
     rev: 22.10.0
     hooks:
     -   id: black
+        args: [--config=pyproject.toml]
 -   repo: https://github.com/python-poetry/poetry
     rev: 1.2.2
     hooks:
@@ -51,12 +46,8 @@ repos:
     hooks:
     -   id: mypy
         args:
-        - --no-strict-optional
+        - --config-file=pyproject.toml
         - --ignore-missing-imports
-        - --warn-redundant-casts
-        - --warn-unused-ignores
-        - --disallow-any-generics
-        - --check-untyped-defs
-        - --no-implicit-reexport
+
         additional_dependencies:
         - pydantic
