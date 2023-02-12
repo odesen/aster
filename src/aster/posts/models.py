@@ -4,13 +4,13 @@ from typing import TYPE_CHECKING
 from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from aster.models import Base, intpk, text, userid
+from aster.models import BaseModel, intpk, text, userid
 
 if TYPE_CHECKING:
     from aster.auth.models import User
 
 
-class Post(Base):
+class Post(BaseModel):
     __tablename__ = "post"
 
     id: Mapped[intpk] = mapped_column(init=False)

@@ -3,10 +3,10 @@ from datetime import datetime
 from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
-from aster.models import Base, intpk, str64, text, userid
+from aster.models import BaseModel, intpk, str64, text, userid
 
 
-class User(Base):
+class User(BaseModel):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(init=False, primary_key=True)
@@ -21,7 +21,7 @@ class User(Base):
     )
 
 
-class UserBlock(Base):
+class UserBlock(BaseModel):
     __tablename__ = "user_block"
 
     id: Mapped[intpk] = mapped_column(init=False)

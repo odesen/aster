@@ -20,9 +20,9 @@ class AppSettings(
     database_port: int = 5432
     database_engine_pool_size: int = 20
     database_engine_max_overflow: int = 0
-    database_uri: PostgresDsn = None
+    database_url: PostgresDsn = None  # type: ignore
 
-    @validator("database_uri", pre=True)
+    @validator("database_url", pre=True)
     def assemble_db_connection(cls, v: str | None, values: dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
@@ -34,7 +34,7 @@ class AppSettings(
             password=pw.get_secret_value() if pw else None,
             host=values.get("database_hostname") or "",
             port=str(values.get("database_port")),
-            path=values.get("database_name"),
+            path=f"""/{values.get("database_name", "")}""",
         )
 
 
