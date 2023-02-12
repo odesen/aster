@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from aster.database import get_session
 
-from .config import get_settings
+from .config import AuthConfig, get_settings
 from .models import User
 from .schemas import TokenData
 from .services import get_user_by_username
@@ -23,6 +23,7 @@ async def get_valid_user_by_username(
 async def get_current_user(
     token: str = Depends(OAuth2PasswordBearer(tokenUrl="token")),
     session: AsyncSession = Depends(get_session),
+    config: AuthConfig = Depends(get_settings),
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -30,9 +31,7 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(
-            token, get_settings().secret_key, algorithms=[get_settings().algorithm]
-        )
+        payload = jwt.decode(token, config.secret_key, algorithms=[config.algorithm])
         username: str | None = payload.get("sub")
         if username is None:
             raise credentials_exception
