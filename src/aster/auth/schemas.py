@@ -22,6 +22,13 @@ class UserView(UserBase):
         orm_mode = True
 
 
+class ListUserView(UserBase):
+    __root__: list[UserView]
+
+    class Config:
+        orm_mode = True
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
