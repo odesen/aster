@@ -44,9 +44,49 @@ def database_drop(yes: bool) -> None:
         click.secho("Success.", fg="green")
 
 
+@aster_database.command("upgrade")
+@click.option("--dry-run", is_flag=True, default=False, help="Show SQL or execute it.")
+@click.option("--revision", nargs=1, default="head", help="Revision identifier.")
+def database_upgrade(dry_run: bool, revision: str) -> None:
+    ...
+
+
+@aster_database.command("heads")
+def database_head() -> None:
+    from alembic.command import heads
+    from alembic.config import Config as AlembicConfig
+
+    from .config import get_settings
+
+    config = get_settings()
+    alembic_cfg = AlembicConfig(str(config.alembic_ini_path))
+    alembic_cfg.set_main_option("script_location", str(config.alembic_revision_path))
+    heads(alembic_cfg)
+
+
+@aster_database.command("history")
+def database_history() -> None:
+    from alembic.command import history
+    from alembic.config import Config as AlembicConfig
+
+    from .config import get_settings
+
+    config = get_settings()
+    alembic_cfg = AlembicConfig(str(config.alembic_ini_path))
+    alembic_cfg.set_main_option("script_location", str(config.alembic_revision_path))
+    history(alembic_cfg)
+
+
 @aster_cli.group("server")
 def aster_server() -> None:
     ...
+
+
+@aster_server.command("config")
+def server_config() -> None:
+    from .config import get_settings
+
+    click.secho(get_settings().dict(), fg="blue")
 
 
 aster_server.add_command(uvicorn.main, name="start")
@@ -58,5 +98,4 @@ def entrypoint() -> None:
     try:
         aster_cli()
     except AsterException as exc:
-        click.secho(f"ERROR: {exc}", bold=True, fg="red")
         click.secho(f"ERROR: {exc}", bold=True, fg="red")

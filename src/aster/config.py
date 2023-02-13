@@ -1,7 +1,14 @@
 from functools import lru_cache
 from typing import Any
 
-from pydantic import BaseSettings, PostgresDsn, SecretStr, validator
+from pydantic import (
+    BaseSettings,
+    DirectoryPath,
+    FilePath,
+    PostgresDsn,
+    SecretStr,
+    validator,
+)
 
 from aster import ASTER_ENV_PREFIX
 
@@ -36,6 +43,9 @@ class AppSettings(
             port=str(values.get("database_port")),
             path=f"""/{values.get("database_name", "")}""",
         )
+
+    alembic_ini_path: FilePath = "alembic.ini"  # type: ignore
+    alembic_revision_path: DirectoryPath = "alembic"  # type: ignore
 
 
 @lru_cache()
