@@ -9,7 +9,7 @@ from aster.models import BaseModel, intpk, str64, text, userid
 class User(BaseModel):
     __tablename__ = "user"
 
-    id: Mapped[int] = mapped_column(init=False, primary_key=True)
+    id: Mapped[intpk] = mapped_column()
     username: Mapped[str64] = mapped_column(unique=True)
     password: Mapped[text] = mapped_column()
     is_active: Mapped[bool] = mapped_column(default=False)
@@ -24,6 +24,6 @@ class User(BaseModel):
 class UserBlock(BaseModel):
     __tablename__ = "user_block"
 
-    id: Mapped[intpk] = mapped_column(init=False)
+    id: Mapped[intpk] = mapped_column()
     uid: Mapped[userid] = mapped_column()
     uid_blocked: Mapped[userid] = mapped_column()

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class Post(BaseModel):
     __tablename__ = "post"
 
-    id: Mapped[intpk] = mapped_column(init=False)
+    id: Mapped[intpk] = mapped_column()
     content: Mapped[text] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(DateTime, insert_default=datetime.now)
     uid: Mapped[userid] = mapped_column()

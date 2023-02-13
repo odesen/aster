@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from sqlalchemy import ForeignKey, MetaData, String, Text
+from sqlalchemy import ForeignKey, Identity, Integer, MetaData, String, Text
 from sqlalchemy.orm import DeclarativeBase, MappedAsDataclass, mapped_column
 
 POSTGRES_INDEXES_NAMING_CONVENTION = {
@@ -18,7 +18,7 @@ class BaseModel(MappedAsDataclass, DeclarativeBase):
     """subclasses will be converted to dataclasses"""
 
 
-intpk = Annotated[int, mapped_column(init=False, primary_key=True)]
+intpk = Annotated[int, mapped_column(Integer, Identity(), init=False, primary_key=True)]
 str64 = Annotated[str, mapped_column(String(64))]
 text = Annotated[str, mapped_column(Text)]
 userid = Annotated[int, mapped_column(ForeignKey("user.id"))]
