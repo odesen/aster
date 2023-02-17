@@ -4,13 +4,12 @@ from typing import Any, Iterable
 import pytest
 from fastapi.testclient import TestClient
 
+from aster.api import create_app
+from aster.database import drop_database, engine, init_database
+
 pytestmark = pytest.mark.anyio
 
 os.environ["ASTER_DATABASE_NAME"] = "aster-test"
-
-from aster.api import create_app
-from aster.config import get_settings
-from aster.database import drop_database, engine, init_database
 
 
 @pytest.fixture(scope="session")

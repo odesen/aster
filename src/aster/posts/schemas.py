@@ -23,7 +23,7 @@ class PostView(PostBase):
 
 
 class ListPostView(ORJSONModel):
-    posts: list[PostView]
+    __root__: list[PostView]
 
     class Config:
         orm_mode = True

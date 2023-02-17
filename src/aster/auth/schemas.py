@@ -22,17 +22,28 @@ class UserView(UserBase):
         orm_mode = True
 
 
-class ListUserView(UserBase):
+class ListUserView(ORJSONModel):
     __root__: list[UserView]
 
     class Config:
         orm_mode = True
 
 
-class Token(BaseModel):
+class TokenResponse(BaseModel):
     access_token: str
     token_type: str
 
 
-class TokenData(BaseModel):
-    username: str
+class JWTToken(BaseModel):
+    iss: str | None = None
+    """Issuer of the JWT"""
+    sub: str | None = None
+    """Subject of the JWT (the user)"""
+    aud: str | None = None
+    """Recipient for which the JWT is intended"""
+    exp: datetime | None = None
+    """Time ater which the JWT expires"""
+    nbf: datetime | None = None
+    """Time before which the JWT must not be accepted for processing"""
+    iat: datetime | None = None
+    """Time at which the JWT was issued; can be used to determine age of the JWT"""
