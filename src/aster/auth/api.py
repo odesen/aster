@@ -53,14 +53,14 @@ user_router = APIRouter(
 
 
 @user_router.get("", response_model=schemas.UserView)
-async def get_authentificated_user(
+async def get_authenticated_user(
     user: models.User = Depends(dependencies.get_current_active_user),
 ) -> AsterResponse:
     return AsterResponse(schemas.UserView.from_orm(user).json())
 
 
 @user_router.patch("")
-async def update_authentificated_user() -> AsterResponse:
+async def update_authenticated_user() -> AsterResponse:
     return AsterResponse()
 
 
