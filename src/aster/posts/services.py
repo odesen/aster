@@ -2,7 +2,9 @@ from typing import Sequence
 
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import contains_eager
+
+from aster.auth.models import User
 
 from .models import Post
 from .schemas import PostCreate
@@ -21,12 +23,13 @@ async def get_post_by_id(session: AsyncSession, *, post_id: int) -> Post | None:
 
 
 async def list_posts(
-    session: AsyncSession, *, uid: int, limit: int = 10, offset: int = 0
+    session: AsyncSession, *, username: str, limit: int = 10, offset: int = 0
 ) -> Sequence[Post]:
     res = await session.execute(
         select(Post)
-        .options(joinedload(Post.user))
-        .where(Post.uid == uid)
+        .join(Post.user)
+        .options(contains_eager(Post.user))
+        .where(User.username == username)
         .limit(limit)
         .offset(offset)
         .order_by(desc(Post.created_at))

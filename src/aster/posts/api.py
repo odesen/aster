@@ -24,9 +24,9 @@ async def create_post(
 
 @posts_router.get("/", response_model=schemas.ListPostView)
 async def list_posts(
-    uid: int, session: AsyncSession = Depends(get_session)
+    username: str, session: AsyncSession = Depends(get_session)
 ) -> AsterResponse:
-    posts = await services.list_posts(session, uid=uid)
+    posts = await services.list_posts(session, username=username)
     return AsterResponse(schemas.ListPostView.from_orm(posts).json())
 
 
