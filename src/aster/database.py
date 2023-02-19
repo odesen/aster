@@ -62,7 +62,17 @@ def init_schema() -> None:
 
 
 def drop_database(url: str, database: str) -> None:
-    with (psycopg.connect(url, autocommit=True) as conn, conn.cursor() as cur):
+    config = get_settings()
+    url_psycopg = f"postgresql://{config.database_credential_user.get_secret_value()}:{config.database_credential_password.get_secret_value()}@{config.database_hostname}:{config.database_port}"
+    with (psycopg.connect(url_psycopg, autocommit=True) as conn, conn.cursor() as cur):
+        cur.execute(
+            """
+            SELECT pg_terminate_backend(pg_stat_activity.pid)
+            FROM pg_stat_activity
+            WHERE pg_stat_activity.datname = %s AND pid <> pg_backend_pid();
+            """,
+            (database,),
+        )
         cur.execute(
             sql.SQL("DROP DATABASE IF EXISTS {0};").format(sql.Identifier(database))
         )
