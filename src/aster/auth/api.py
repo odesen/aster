@@ -48,13 +48,13 @@ async def get_user(
 
 
 user_router = APIRouter(
-    prefix="/user", dependencies=[Depends(dependencies.get_current_active_user)]
+    prefix="/user", dependencies=[Depends(dependencies.get_current_user)]
 )
 
 
 @user_router.get("", response_model=schemas.UserView)
 async def get_authenticated_user(
-    user: models.User = Depends(dependencies.get_current_active_user),
+    user: models.User = Depends(dependencies.get_current_user),
 ) -> AsterResponse:
     return AsterResponse(schemas.UserView.from_orm(user).json())
 
@@ -74,7 +74,7 @@ user_block_router = APIRouter(prefix="/blocks")
 
 @user_block_router.get("/", response_model=schemas.ListUserView)
 async def list_users_blocked_by_authenticated_user(
-    user: models.User = Depends(dependencies.get_current_active_user),
+    user: models.User = Depends(dependencies.get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> AsterResponse:
     users = await services.list_users_blocked_by_user(session, username=user.username)
@@ -84,7 +84,7 @@ async def list_users_blocked_by_authenticated_user(
 @user_block_router.get("/{username}")
 async def check_user_blocked_by_authenticated_user(
     username: str,
-    user: models.User = Depends(dependencies.get_current_active_user),
+    user: models.User = Depends(dependencies.get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> AsterResponse:
     is_blocked = await services.check_if_user_blocked_by_user(
@@ -99,7 +99,7 @@ async def check_user_blocked_by_authenticated_user(
 @user_block_router.put("/{username}")
 async def block_user(
     username: str,
-    user: models.User = Depends(dependencies.get_current_active_user),
+    user: models.User = Depends(dependencies.get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> AsterResponse:
     await services.block_user(session, user=user, username_to_block=username)
@@ -110,7 +110,7 @@ async def block_user(
 @user_block_router.delete("/{username}")
 async def unblock_user(
     username: str,
-    user: models.User = Depends(dependencies.get_current_active_user),
+    user: models.User = Depends(dependencies.get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> AsterResponse:
     await services.unblock_user(session, user=user, username_to_unblock=username)
