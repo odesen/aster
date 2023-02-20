@@ -59,7 +59,7 @@ async def check_if_user_blocked_by_user(
         )
     )
     res = await session.execute(stmt)
-    return True if res.first() is not None else True
+    return True if res.first() is not None else False
 
 
 async def block_user(
