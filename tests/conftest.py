@@ -2,8 +2,8 @@ import os
 from typing import Any, AsyncIterable, Callable, Coroutine
 
 import pytest
-from fastapi.testclient import TestClient
 from httpx import AsyncClient, Response
+from sqlalchemy.ext.asyncio import AsyncSession
 
 os.environ["ASTER_DATABASE_NAME"] = "aster-test"
 
@@ -11,12 +11,12 @@ os.environ["ASTER_DATABASE_NAME"] = "aster-test"
 
 from aster.api import create_app
 from aster.auth.schemas import UserCreate
-from aster.database import drop_database, engine, init_database
+from aster.database import drop_database, engine, init_database, session_factory
 from aster.posts.schemas import PostCreate
 
 
 @pytest.fixture(scope="session")
-def anyio_backend() -> Any:
+def anyio_backend() -> str:
     return "asyncio"
 
 
@@ -31,6 +31,14 @@ async def database(anyio_backend: str) -> Any:
 async def client(anyio_backend: str) -> AsyncIterable[AsyncClient]:
     async with AsyncClient(app=create_app(), base_url="http://testserver") as ac:
         yield ac
+
+
+@pytest.fixture(scope="function", autouse=True)
+async def session() -> AsyncIterable[AsyncSession]:
+    async with (engine.connect() as conn, conn.begin() as transaction):
+        session_factory.configure(bind=conn, join_transaction_mode="create_savepoint")
+        yield session_factory()
+        await transaction.rollback()
 
 
 # Auth API
@@ -54,10 +62,11 @@ async def api_login(
 @pytest.fixture
 def api_register_user(
     client: AsyncClient,
-) -> Callable[[UserCreate], Coroutine[Any, Any, Response]]:
-    async def _r(data_in: UserCreate) -> Response:
+) -> Callable[[dict[str, str]], Coroutine[Any, Any, Response]]:
+    async def _r(data_in: dict[str, str]) -> Response:
         return await client.post(
-            f"{client.base_url}/users/register", content=data_in.json()
+            f"{client.base_url}/users/register",
+            json=data_in,
         )
 
     return _r
