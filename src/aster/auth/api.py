@@ -72,7 +72,7 @@ async def update_password_for_authenticated_user() -> AsterResponse:
 user_block_router = APIRouter(prefix="/blocks")
 
 
-@user_block_router.get("/", response_model=schemas.ListUserView)
+@user_block_router.get("", response_model=schemas.ListUserView)
 async def list_users_blocked_by_authenticated_user(
     user: models.User = Depends(dependencies.get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -96,7 +96,7 @@ async def check_user_blocked_by_authenticated_user(
     return AsterResponse(status_code=status_code)
 
 
-@user_block_router.put("/{username}")
+@user_block_router.put("/{username}", status_code=status.HTTP_204_NO_CONTENT)
 async def block_user(
     username: str,
     user: models.User = Depends(dependencies.get_current_user),
