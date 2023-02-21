@@ -32,6 +32,7 @@ httpx = "^0.23.3"
 pytest = "^6.0.0"
 black = "^22.10.0"
 isort = "^5.10.1"
+coverage = "^7.1.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.241"
@@ -96,6 +97,24 @@ ignore = [
     "E501",  # line too long, handled by black
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
+]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--strict-config",
+    "--strict-markers"
+]
+xfail_strict = true
+filterwarnings = [
+    # For passlib
+    "ignore:'crypt' is deprecated and slated for removal in Python 3.13:DeprecationWarning",
+]
+
+[tool.coverage.run]
+parallel = true
+source = [
+    "tests",
+    "src"
 ]
 
 [build-system]
