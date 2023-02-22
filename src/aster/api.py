@@ -1,12 +1,19 @@
+import logging.config
+
 import fastapi
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from aster.auth.api import login_router, user_router, users_router
+from aster.logging import DEFAULT_LOGGING_CONFIG
+from aster.middlewares import AsterMiddleware
 from aster.posts.api import posts_router
 
 
 def create_app() -> fastapi.FastAPI:
+    logging.config.dictConfig(DEFAULT_LOGGING_CONFIG)
+
     app = fastapi.FastAPI()
+    app.add_middleware(AsterMiddleware)
 
     async def healthcheck() -> fastapi.Response:
         return fastapi.Response("Hello world!")
