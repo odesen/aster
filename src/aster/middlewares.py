@@ -12,7 +12,7 @@ from asgiref.typing import (
 
 from aster.context import AsterCanonicalLogAtoms, current_context
 
-logger = logging.getLogger("aster")
+logger = logging.getLogger("aster.access")
 
 
 class AsterMiddleware:
@@ -24,14 +24,15 @@ class AsterMiddleware:
     ) -> None:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
-        current_context.set(AsterCanonicalLogAtoms())
-        request_id: str = uuid.uuid4().hex
-        current_context.get().update(request_id=request_id)
+        context = AsterCanonicalLogAtoms()
+        current_context.set(context)
+        context.update(request_id=uuid.uuid4().hex)
+        context.update_request(scope)
         start_time = time.time()
 
         async def inner_send(message: ASGISendEvent) -> None:
             if message["type"] == "http.response.start":
-                current_context.get().update_response(message)
+                context.update_response(message)
             await send(message)
 
         try:
@@ -39,8 +40,5 @@ class AsterMiddleware:
         except Exception:
             raise
         finally:
-            current_context.get().update_request(scope)
-            current_context.get().update_process_time(time.time() - start_time)
-            logger.info(
-                "%(t)s - %(client_addr)s - %(request_line)s", current_context.get()
-            )
+            context.update_process_time(time.time() - start_time)
+            logger.info("request")

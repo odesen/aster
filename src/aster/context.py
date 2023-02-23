@@ -9,7 +9,7 @@ from asgiref.typing import HTTPResponseStartEvent, HTTPScope
 def get_client_addr(scope: HTTPScope) -> str:
     if scope["client"] is None:
         return "unknown:unknown"
-    return f"{scope['client'][0]:{scope['client'][1]}}"
+    return f"{scope['client'][0]}:{scope['client'][1]}"
 
 
 def get_path_with_query_string(scope: HTTPScope) -> str:
