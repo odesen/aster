@@ -81,6 +81,8 @@ warn_untyped_fields = true
 module = [
     "jose",
     "passlib.context",
+    "redis",
+    "redis.asyncio",
 ]
 ignore_missing_imports = true
 

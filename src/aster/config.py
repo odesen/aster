@@ -6,6 +6,7 @@ from pydantic import (
     DirectoryPath,
     FilePath,
     PostgresDsn,
+    RedisDsn,
     SecretStr,
     validator,
 )
@@ -46,6 +47,8 @@ class AppSettings(
 
     alembic_ini_path: FilePath = "alembic.ini"  # type: ignore
     alembic_revision_path: DirectoryPath = "alembic"  # type: ignore
+
+    redis_url: RedisDsn | None = None
 
 
 @lru_cache()
