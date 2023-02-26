@@ -1,5 +1,44 @@
-import redis.asyncio as aioredis
+from typing import Any, Callable
+from urllib.parse import urlencode
 
-from aster.config import get_settings
+from fastapi import Request
+from redis.asyncio import Redis
+from redis.asyncio.connection import ConnectionPool
 
-redis = aioredis.from_url(url=get_settings().redis_url)
+CacheKeyBuilder = Callable[[Request], str]
+
+
+def default_cache_key_builder(request: Request) -> str:
+    query_params: list[tuple[str, Any]] = list(request.query_params.items())
+    query_params.sort(key=lambda x: x[0])
+    return request.url.path + urlencode(query_params, doseq=True)
+
+
+class RedisCache:
+    def __init__(
+        self,
+        redis_url: str,
+        default_expiration: int = 60,
+        cache_key_builder: CacheKeyBuilder = default_cache_key_builder,
+    ) -> None:
+        self.redis = Redis(connection_pool=ConnectionPool.from_url(redis_url))
+        self.default_expiration = default_expiration
+        self.key_builder = cache_key_builder
+
+    async def get(self, key: str) -> bytes | None:
+        return await self.redis.get(key)
+
+    async def set(self, key: str, value: Any, expiration: int | None = None) -> None:
+        await self.redis.set(key, value, ex=expiration)
+
+    async def delete(self, key: str) -> Any:
+        await self.redis.delete(key)
+
+    async def exists(self, key: str) -> bool:
+        return await self.redis.exists(key) == 1
+
+    def build_cache_key(
+        self, request: Request, cache_key_builder: CacheKeyBuilder | None
+    ) -> str:
+        key_builder = cache_key_builder or self.key_builder
+        return key_builder(request)
