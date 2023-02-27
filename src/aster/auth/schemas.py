@@ -1,8 +1,15 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pydantic import BaseModel, Field, SecretStr
 
 from aster.schemas import ORJSONModel
+
+
+def _normalize_datetime(value: datetime) -> datetime:
+    """Converts the given value into UTC and strips microseconds"""
+    if value.tzinfo is not None:
+        value.astimezone(timezone.utc)
+    return value.replace(microsecond=0)
 
 
 class UserBase(ORJSONModel):
@@ -35,15 +42,17 @@ class TokenResponse(BaseModel):
 
 
 class JWTToken(BaseModel):
-    iss: str | None = None
-    """Issuer of the JWT"""
-    sub: str | None = None
+    exp: datetime
+    """Expiration - Time after which the JWT expires"""
+    iat: datetime = Field(
+        default_factory=lambda: _normalize_datetime(datetime.now(timezone.utc))
+    )
+    """Issued at - Time at which the JWT was issued; can be used to determine age of the JWT"""
+    sub: str = Field(min_length=1)
     """Subject of the JWT (the user)"""
+    iss: str | None = None
+    """Issuer - Issuer of the JWT"""
     aud: str | None = None
-    """Recipient for which the JWT is intended"""
-    exp: datetime | None = None
-    """Time ater which the JWT expires"""
+    """Audience - Recipient for which the JWT is intended"""
     nbf: datetime | None = None
-    """Time before which the JWT must not be accepted for processing"""
-    iat: datetime | None = None
-    """Time at which the JWT was issued; can be used to determine age of the JWT"""
+    """Not before - Time before which the JWT must not be accepted for processing"""
