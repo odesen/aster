@@ -1,7 +1,8 @@
-import logging
-from typing import Any, cast
+import time
+from typing import cast
 from uuid import uuid4
 
+import structlog
 from asgiref.typing import (
     ASGI3Application,
     ASGIReceiveCallable,
@@ -14,10 +15,17 @@ from asgiref.typing import (
 )
 from fastapi import Request
 from starlette import datastructures, types
+from structlog.contextvars import bind_contextvars, clear_contextvars
 
 from .context import correlation_id
 
-logger = logging.getLogger("aster")
+logger = structlog.get_logger()
+
+
+def get_client_addr(client: datastructures.Address | None) -> str:
+    if client is None:
+        return "unknown:unknown"
+    return f"{client[0]}:{client[1]}"
 
 
 class LoggingMiddleware:
@@ -27,33 +35,40 @@ class LoggingMiddleware:
     async def __call__(
         self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ) -> None:
+        clear_contextvars()
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
-
+        await self.extract_request_data(scope, receive)
         send = self.create_send_wrapper(scope, send)
-        await self.app(scope, receive, send)
+        try:
+            await self.app(scope, receive, send)
+        except Exception as exc:
+            raise exc
+        finally:
+            log = logger.bind()
+            log.info("HTTP Request")
 
     async def extract_request_data(
         self, scope: HTTPScope, receive: ASGIReceiveCallable
-    ) -> dict[str, Any]:
+    ) -> None:
         request = Request(
             cast(types.Scope, scope), receive=cast(types.Receive, receive)
         )
-        return {
-            "path_params": request.path_params,
-            "method": request.method,
-            "client": request.client,
-        }
+        bind_contextvars(
+            path=scope["path"],
+            method=request.method,
+            client=get_client_addr(request.client),
+            body=await request.body(),
+        )
 
-    async def extract_response_data(
-        self, message: HTTPResponseStartEvent
-    ) -> dict[str, Any]:
-        return {"status": message["status"]}
+    async def extract_response_data(self, message: HTTPResponseStartEvent) -> None:
+        bind_contextvars(
+            status=message["status"],
+        )
 
-    async def extract_response_body_data(
-        self, message: HTTPResponseBodyEvent
-    ) -> dict[str, Any]:
-        return {"body": message["body"]}
+    async def extract_response_body_data(self, message: HTTPResponseBodyEvent) -> None:
+        # {"body": message["body"]}
+        ...
 
     def create_send_wrapper(
         self, scope: Scope, send: ASGISendCallable
@@ -76,7 +91,8 @@ class CorrelationIDMiddleware:
     async def __call__(
         self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ) -> None:
-        correlation_id.set(uuid4().hex)
+        correlation_id.set(id_value := uuid4().hex)
+        bind_contextvars(request_id=id_value)
         send = self.create_send_wrapper(scope, send)
         await self.app(scope, receive, send)
 
@@ -99,3 +115,14 @@ class CorrelationIDMiddleware:
 class TimingMiddleware:
     def __init__(self, app: ASGI3Application):
         self.app = app
+
+    async def __call__(
+        self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
+    ) -> None:
+        try:
+            start = time.time()
+            await self.app(scope, receive, send)
+        except Exception as exc:
+            raise exc
+        finally:
+            bind_contextvars(process_time=time.time() - start)
