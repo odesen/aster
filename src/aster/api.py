@@ -29,9 +29,9 @@ def create_app() -> fastapi.FastAPI:
     )
 
     app = fastapi.FastAPI()
-    app.add_middleware(LoggingMiddleware)
-    app.add_middleware(CorrelationIDMiddleware)
     app.add_middleware(TimingMiddleware)
+    app.add_middleware(CorrelationIDMiddleware)
+    app.add_middleware(LoggingMiddleware)
 
     async def healthcheck() -> fastapi.Response:
         return fastapi.Response("Hello world!")
