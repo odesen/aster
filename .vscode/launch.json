@@ -12,7 +12,9 @@
             "args": [
                 "aster.api:create_app",
                 "--reload",
-                "--factory"
+                "--factory",
+                "--no-use-colors",
+                "--no-access-log"
             ],
             "jinja": true,
             "justMyCode": true
