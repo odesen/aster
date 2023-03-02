@@ -17,7 +17,7 @@
                 "--no-access-log"
             ],
             "jinja": true,
-            "justMyCode": true
+            "justMyCode": false
         },
         {
             "name": "Docker: Python - Fastapi",

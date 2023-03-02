@@ -35,18 +35,19 @@ class LoggingMiddleware:
     async def __call__(
         self, scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ) -> None:
-        clear_contextvars()
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
         await self.extract_request_data(scope, receive)
         send = self.create_send_wrapper(scope, send)
+        log = logger.bind()
         try:
             await self.app(scope, receive, send)
         except Exception as exc:
+            await log.exception("Exception during request: %s" % type(exc))
             raise exc
-        finally:
-            log = logger.bind()
-            log.info("HTTP Request")
+        else:
+            await log.info("HTTP Request")
+        clear_contextvars()
 
     async def extract_request_data(
         self, scope: HTTPScope, receive: ASGIReceiveCallable

@@ -1,3 +1,4 @@
+import logging
 from functools import lru_cache
 from typing import Any
 
@@ -49,6 +50,8 @@ class AppSettings(
     alembic_revision_path: DirectoryPath = "alembic"  # type: ignore
 
     redis_url: RedisDsn | None = None
+
+    logging_level: int = logging.INFO
 
 
 @lru_cache()

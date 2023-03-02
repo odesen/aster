@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import (
 from aster.config import get_settings
 from aster.models import BaseModel
 
-engine = create_async_engine(get_settings().database_url, echo=True)
+engine = create_async_engine(get_settings().database_url)
 session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
 
