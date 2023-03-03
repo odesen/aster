@@ -2,11 +2,10 @@ from typing import Any, Callable, Coroutine
 
 import dirty_equals as de
 import pytest
-from httpx import Response
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from aster.auth.schemas import UserCreate
 from aster.auth.services import create_user
+from httpx import Response
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.mark.anyio

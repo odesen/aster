@@ -1,9 +1,8 @@
 from datetime import datetime
 
+from aster.models import BaseModel, intpk, str64, text, userid
 from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from aster.models import BaseModel, intpk, str64, text, userid
 
 
 class User(BaseModel):

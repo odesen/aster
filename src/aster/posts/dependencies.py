@@ -1,7 +1,6 @@
+from aster.database import get_session
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from aster.database import get_session
 
 from .models import Post
 from .services import get_post_by_id

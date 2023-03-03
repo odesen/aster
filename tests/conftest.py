@@ -10,7 +10,6 @@ os.environ["ASTER_DATABASE_NAME"] = "aster-test"
 # ruff: noqa: E402
 
 from aster.api import create_app
-from aster.auth.schemas import UserCreate
 from aster.database import drop_database, engine, init_database, session_factory
 from aster.posts.schemas import PostCreate
 

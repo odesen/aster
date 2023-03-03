@@ -1,9 +1,8 @@
 from datetime import datetime
 
-from pydantic import Field
-
 from aster.auth.schemas import UserView
 from aster.schemas import ORJSONModel
+from pydantic import Field
 
 
 class PostBase(ORJSONModel):

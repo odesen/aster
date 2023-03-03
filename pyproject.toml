@@ -10,7 +10,7 @@ packages = [{include = "aster", from = "src"}]
 python = "^3.11"
 fastapi = "^0.92.0"
 pydantic = "^1.10.4"
-sqlalchemy = "^2.0.1"
+sqlalchemy = "^2.0.4"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 opentelemetry-api = "^1.14.0"
@@ -30,17 +30,16 @@ httpx = "^0.23.3"
 structlog = "^22.3.0"
 
 [tool.poetry.group.test.dependencies]
-pytest = "^6.0.0"
-black = "^22.10.0"
-isort = "^5.10.1"
-coverage = "^7.1.0"
+pytest = "^7.2.2"
+black = "^23.1.0"
+coverage = "^7.2.1"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.0.241"
+ruff = "^0.0.253"
 uvicorn = {extras = ["standard"], version = "^0.20.0"}
 strawberry-graphql = {extras = ["debug-server"], version = "^0.156.3"}
-mypy = "^1.0"
-pre-commit = "^2.21.0"
+mypy = "^1.0.1"
+pre-commit = "^3.1.1"
 dirty-equals = "^0.5.0"
 rich = "^13.3.1"
 
@@ -90,11 +89,16 @@ ignore_missing_imports = true
 
 [tool.ruff]
 select = [
+    # pycodestyle
     "E",
     "W",
+    # pyflakes
     "F",
+    # flake-8
     "C",
     "B",
+    # isort
+    "I",
 ]
 
 ignore = [

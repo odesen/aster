@@ -1,10 +1,9 @@
 from typing import Sequence
 
+from aster.auth.utils import get_password_hash
 from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
-
-from aster.auth.utils import get_password_hash
 
 from .models import User, UserBlock
 from .schemas import UserCreate

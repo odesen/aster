@@ -1,11 +1,10 @@
 from datetime import datetime, timedelta
 
+from aster.database import get_session
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from aster.database import get_session
 
 from .config import AuthConfig, get_settings
 from .models import User

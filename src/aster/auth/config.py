@@ -1,9 +1,8 @@
 import secrets
 from functools import lru_cache
 
-from pydantic import BaseSettings
-
 from aster import ASTER_ENV_PREFIX
+from pydantic import BaseSettings
 
 
 class AuthConfig(

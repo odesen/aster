@@ -1,8 +1,7 @@
 from datetime import datetime, timezone
 
-from pydantic import BaseModel, Field, SecretStr
-
 from aster.schemas import ORJSONModel
+from pydantic import BaseModel, Field, SecretStr
 
 
 def _normalize_datetime(value: datetime) -> datetime:

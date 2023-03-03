@@ -1,10 +1,9 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from aster.models import BaseModel, intpk, text, userid
 from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from aster.models import BaseModel, intpk, text, userid
 
 if TYPE_CHECKING:
     from aster.auth.models import User
