@@ -1,80 +1,98 @@
+import atexit
 import logging
-import sys
+from dataclasses import asdict, dataclass, field
+from logging.handlers import QueueHandler, QueueListener
+from queue import Queue
+from typing import Any, Callable
 
 import orjson
 import structlog
-from structlog.dev import set_exc_info
+from structlog.types import (
+    BindableLogger,
+    FilteringBoundLogger,
+    Processor,
+    WrappedLogger,
+)
 
-from .config import get_settings
 
-
-def init_logging() -> None:
-    shared_processors: list[structlog.typing.Processor] = [
+def default_structlog_processors() -> list[Processor]:
+    return [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
-        set_exc_info,
-        # structlog.processors.format_exc_info,
+        structlog.processors.format_exc_info,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
+        structlog.processors.JSONRenderer(serializer=orjson.dumps),
     ]
 
-    if sys.stderr.isatty():
-        # processors = shared_processors + [structlog.dev.ConsoleRenderer()]
-        formatter = structlog.stdlib.ProcessorFormatter(
-            foreign_pre_chain=shared_processors,
-            processor=structlog.dev.ConsoleRenderer(
-                exception_formatter=structlog.dev.plain_traceback
-            ),
-        )
-    else:
-        shared_processors = shared_processors + [
-            structlog.processors.dict_tracebacks,
-            structlog.processors.JSONRenderer(serializer=orjson.dumps),
-        ]
-        formatter = structlog.stdlib.ProcessorFormatter(
-            foreign_pre_chain=shared_processors,
-            processor=structlog.processors.JSONRenderer(serializer=orjson.dumps),
-        )
-    processors: list[structlog.typing.Processor] = shared_processors + [
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ]
 
-    structlog.configure(
-        cache_logger_on_first_use=True,
-        wrapper_class=structlog.stdlib.AsyncBoundLogger,
-        processors=processors,
-        logger_factory=structlog.stdlib.LoggerFactory(),
+def default_structlog_wrapper_class() -> type[BindableLogger] | None:
+    return structlog.make_filtering_bound_logger(logging.INFO)
+
+
+def default_logger_factory() -> Callable[..., WrappedLogger] | None:
+    return structlog.BytesLoggerFactory()
+
+
+@dataclass
+class StructLoggingConfig:
+    """Configuration class for structlog.
+    Notes:
+        - requires 'structlog' to be installed.
+    """
+
+    processors: list[Processor] | None = field(
+        default_factory=default_structlog_processors
     )
+    """Iterable of structlog logging processors."""
+    wrapper_class: type[BindableLogger] | None = field(
+        default_factory=default_structlog_wrapper_class
+    )
+    """Structlog bindable logger."""
+    context_class: dict[str, Any] | None = None
+    """Context class (a 'contextvar' context) for the logger."""
+    logger_factory: Callable[..., WrappedLogger] | None = field(
+        default_factory=default_logger_factory,
+    )
+    """Logger factory to use."""
+    cache_logger_on_first_use: bool = field(default=True)
+    """Whether to cache the logger configuration and reuse."""
 
-    uvicorn_logger = logging.getLogger("uvicorn")
-    uvicorn_logger.handlers.clear()
-    uvicorn_logger.propagate = True
+    def configure(
+        self,
+    ) -> Callable[..., FilteringBoundLogger]:
+        """Return logger with the given configuration.
+        Returns:
+            A 'logging.getLogger' like function.
+        """
+        try:
+            from structlog import configure, get_logger
 
-    uvicorn_error_logger = logging.getLogger("uvicorn.error")
-    uvicorn_error_logger.handlers.clear()
-    uvicorn_error_logger.propagate = False
-
-    uvicorn_access_logger = logging.getLogger("uvicorn.access")
-    uvicorn_access_logger.handlers.clear()
-    uvicorn_access_logger.propagate = False
-
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(get_settings().logging_level)
-    stdout_handler.addFilter(_MaxLevelFilter(logging.WARNING))
-    stdout_handler.setFormatter(formatter)
-    # handler for high level logs that should be sent to STDERR
-    stderr_handler = logging.StreamHandler(sys.stderr)
-    stderr_handler.setLevel(logging.ERROR)
-    stderr_handler.setFormatter(formatter)
-
-    root_logger = logging.getLogger()
-    root_logger.setLevel(get_settings().logging_level)
-    root_logger.addHandler(stdout_handler)
-    root_logger.addHandler(stderr_handler)
+            # we now configure structlog
+            configure(**{k: v for k, v in asdict(self).items()})
+            return get_logger
+        except ImportError as e:  # pragma: no cover
+            raise e
 
 
-class _MaxLevelFilter(logging.Filter):
-    def __init__(self, highest_log_level: int) -> None:
-        self._highest_log_level = highest_log_level
+def resolve_handlers(handlers: list[Any]) -> list[Any]:
+    return [handlers(i) for i in range(len(handlers))]  # type: ignore
 
-    def filter(self, log_record: logging.LogRecord) -> bool:
-        return log_record.levelno <= self._highest_log_level
+
+class QueueListenerHandler(QueueHandler):
+    def __init__(self, handlers: list[Any] | None = None) -> None:
+        super().__init__(Queue(-1))
+        if handlers:
+            handlers = resolve_handlers(handlers)
+        else:
+            handlers = [logging.StreamHandler()]
+
+        self.listener = QueueListener(self.queue, *handlers)
+        self.listener.start()
+
+        atexit.register(self.listener.stop)
+        atexit.register(self.listener.stop)
+        self.listener = QueueListener(self.queue, *handlers)
+        self.listener.start()
+
+        atexit.register(self.listener.stop)
+        atexit.register(self.listener.stop)

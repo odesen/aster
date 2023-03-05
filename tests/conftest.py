@@ -5,7 +5,7 @@ import pytest
 from httpx import AsyncClient, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-os.environ["ASTER_DATABASE_NAME"] = "aster-test"
+os.environ["ASTER_DATABASE_NAME"] = "aster_test"
 
 # ruff: noqa: E402
 

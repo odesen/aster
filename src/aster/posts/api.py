@@ -1,12 +1,13 @@
 from aster.database import get_session
 from aster.posts.dependencies import get_valid_post_by_id
 from aster.responses import AsterResponse
+from aster.routes import AsterRoute
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from . import models, schemas, services
 
-posts_router = APIRouter(prefix="/posts")
+posts_router = APIRouter(prefix="/posts", route_class=AsterRoute)
 
 
 @posts_router.post(

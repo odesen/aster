@@ -1,11 +1,12 @@
 from aster.database import get_session
 from aster.responses import AsterResponse
+from aster.routes import AsterRoute
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from . import dependencies, models, schemas, services
 
-login_router = APIRouter(prefix="/login")
+login_router = APIRouter(prefix="/login", route_class=AsterRoute)
 
 
 @login_router.post(
@@ -17,7 +18,7 @@ async def login(
     return AsterResponse(token.json())
 
 
-users_router = APIRouter(prefix="/users")
+users_router = APIRouter(prefix="/users", route_class=AsterRoute)
 
 
 @users_router.post(
@@ -47,7 +48,9 @@ async def get_user(
 
 
 user_router = APIRouter(
-    prefix="/user", dependencies=[Depends(dependencies.get_current_user)]
+    prefix="/user",
+    dependencies=[Depends(dependencies.get_current_user)],
+    route_class=AsterRoute,
 )
 
 
@@ -68,7 +71,7 @@ async def update_password_for_authenticated_user() -> AsterResponse:
     return AsterResponse()
 
 
-user_block_router = APIRouter(prefix="/blocks")
+user_block_router = APIRouter(prefix="/blocks", route_class=AsterRoute)
 
 
 @user_block_router.get("", response_model=schemas.ListUserView)
