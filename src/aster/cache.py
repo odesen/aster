@@ -21,21 +21,24 @@ class RedisCache:
         default_expiration: int = 60,
         cache_key_builder: CacheKeyBuilder = default_cache_key_builder,
     ) -> None:
-        self.redis = Redis(connection_pool=ConnectionPool.from_url(redis_url))
+        self._redis = Redis(connection_pool=ConnectionPool.from_url(redis_url))
         self.default_expiration = default_expiration
         self.key_builder = cache_key_builder
 
     async def get(self, key: str) -> bytes | None:
-        return await self.redis.get(key)
+        return await self._redis.get(key)
 
     async def set(self, key: str, value: Any, expiration: int | None = None) -> None:
-        await self.redis.set(key, value, ex=expiration)
+        await self._redis.set(key, value, ex=expiration)
 
     async def delete(self, key: str) -> Any:
-        await self.redis.delete(key)
+        await self._redis.delete(key)
 
     async def exists(self, key: str) -> bool:
-        return await self.redis.exists(key) == 1
+        return await self._redis.exists(key) == 1
+
+    async def close(self) -> None:
+        await self._redis.close()
 
     def build_cache_key(
         self, request: Request, cache_key_builder: CacheKeyBuilder | None

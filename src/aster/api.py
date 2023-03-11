@@ -1,3 +1,6 @@
+from contextlib import asynccontextmanager
+from typing import AsyncIterator, TypedDict
+
 from fastapi import FastAPI, Response
 
 # from opentelemetry import trace
@@ -8,6 +11,8 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 # from opentelemetry.sdk.trace import TracerProvider
 # from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from aster.auth.api import login_router, user_router, users_router
+from aster.cache import RedisCache
+from aster.config import get_settings
 from aster.logging import StructLoggingConfig
 from aster.middlewares import (
     CorrelationIDMiddleware,
@@ -16,6 +21,20 @@ from aster.middlewares import (
 )
 from aster.posts.api import posts_router
 from aster.routes import default_exception_handler
+
+
+class State(TypedDict):
+    cache: RedisCache | None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[State]:
+    cache = (
+        RedisCache(str(get_settings().redis_url)) if get_settings().redis_url else None
+    )
+    yield State(cache=cache)
+    if cache:
+        await cache.close()
 
 
 def create_app() -> FastAPI:
