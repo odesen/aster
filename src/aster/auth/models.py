@@ -11,7 +11,7 @@ class User(BaseModel):
     # Columns
     id: Mapped[intpk] = mapped_column(init=False)
     username: Mapped[str64] = mapped_column(unique=True)
-    password: Mapped[text] = mapped_column()
+    password: Mapped[text]
     is_active: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default_factory=datetime.now, insert_default=datetime.now
