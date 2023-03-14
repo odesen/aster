@@ -21,6 +21,9 @@ services:
     ports:
       - "8080:80"
 
+  redis:
+    image: redis:7.0.9-alpine
+
   tracing:
     image: jaegertracing/all-in-one:1.42
     ports:
