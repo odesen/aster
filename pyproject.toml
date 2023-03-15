@@ -22,7 +22,7 @@ orjson = "^3.8.2"
 python-dotenv = "^0.21.0"
 psycopg = "^3.1.4"
 gunicorn = "^20.1.0"
-strawberry-graphql = "^0.156.3"
+strawberry-graphql = "^0.164.0"
 uvicorn = "^0.20.0"
 redis = "^4.5.1"
 alembic = "^1.9.3"
@@ -39,8 +39,8 @@ coverage = "^7.2.1"
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.253"
 uvicorn = {extras = ["standard"], version = "^0.20.0"}
-strawberry-graphql = {extras = ["debug-server"], version = "^0.156.3"}
-mypy = "^1.0.1"
+strawberry-graphql = {extras = ["debug-server"], version = "^0.164.0"}
+mypy = "^1.1.1"
 pre-commit = "^3.1.1"
 dirty-equals = "^0.5.0"
 rich = "^13.3.1"
@@ -64,6 +64,7 @@ skip_gitignore = true
 [tool.mypy]
 plugins = [
     "pydantic.mypy",
+    "strawberry.ext.mypy_plugin"
 ]
 
 warn_redundant_casts = true
@@ -87,6 +88,7 @@ module = [
     "redis.asyncio.connection",
     "redis.asyncio",
     "celery",
+    "strawberry",
 ]
 ignore_missing_imports = true
 

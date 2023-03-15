@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from aster.models import BaseModel, intpk, text, userid
-from sqlalchemy import DateTime
+from aster.models import BaseModel
+from sqlalchemy import DateTime, ForeignKey, Identity, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
@@ -12,8 +12,11 @@ if TYPE_CHECKING:
 class Post(BaseModel):
     __tablename__ = "post"
 
-    id: Mapped[intpk]
-    content: Mapped[text]
+    # Columns
+    id: Mapped[int] = mapped_column(Integer, Identity(), init=False, primary_key=True)
+    content: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, insert_default=datetime.now)
-    uid: Mapped[userid]
+    uid: Mapped[int] = mapped_column(ForeignKey("user_.id"))
+
+    # Relationships
     user: Mapped["User"] = relationship()

@@ -6,6 +6,7 @@ from fastapi import FastAPI, Response
 # from opentelemetry import trace
 # from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from strawberry.fastapi import GraphQLRouter
 
 # from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 # from opentelemetry.sdk.trace import TracerProvider
@@ -13,6 +14,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from aster.auth.api import login_router, user_router, users_router
 from aster.cache import RedisCache
 from aster.config import get_settings
+from aster.graph import schema
 from aster.logging import StructLoggingConfig
 from aster.middlewares import (
     CorrelationIDMiddleware,
@@ -20,7 +22,6 @@ from aster.middlewares import (
     TimingMiddleware,
 )
 from aster.posts.api import posts_router
-from aster.routes import default_exception_handler
 
 
 class State(TypedDict):
@@ -45,7 +46,8 @@ def create_app() -> FastAPI:
     app.add_middleware(TimingMiddleware)
     app.add_middleware(CorrelationIDMiddleware)
     app.add_middleware(LoggingMiddleware, logger=logger)
-    app.add_exception_handler(Exception, default_exception_handler)
+
+    graphql_app = GraphQLRouter(schema)
 
     async def healthcheck() -> Response:
         return Response("Hello world!")
@@ -55,6 +57,7 @@ def create_app() -> FastAPI:
     app.include_router(user_router)
     app.include_router(users_router)
     app.include_router(posts_router)
+    app.include_router(graphql_app, prefix="/graphql")
 
     FastAPIInstrumentor.instrument_app(app)
     # resource = Resource(attributes={SERVICE_NAME: "aster"})

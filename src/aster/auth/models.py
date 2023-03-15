@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from aster.models import BaseModel, intpk, str64, text, userid
-from sqlalchemy import DateTime
+from aster.models import BaseModel
+from sqlalchemy import DateTime, ForeignKey, Identity, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -9,9 +9,9 @@ class User(BaseModel):
     __tablename__ = "user_"
 
     # Columns
-    id: Mapped[intpk] = mapped_column(init=False)
-    username: Mapped[str64] = mapped_column(unique=True)
-    password: Mapped[text]
+    id: Mapped[int] = mapped_column(Integer, Identity(), init=False, primary_key=True)
+    username: Mapped[str] = mapped_column(unique=True)
+    password: Mapped[str]
     is_active: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default_factory=datetime.now, insert_default=datetime.now
@@ -39,9 +39,9 @@ class UserBlock(BaseModel):
     __tablename__ = "user_block"
 
     # Columns
-    id: Mapped[intpk] = mapped_column(init=False)
-    uid: Mapped[userid] = mapped_column()
-    uid_blocked: Mapped[userid] = mapped_column()
+    id: Mapped[int] = mapped_column(Integer, Identity(), init=False, primary_key=True)
+    uid: Mapped[int] = mapped_column(ForeignKey("user_.id"))
+    uid_blocked: Mapped[int] = mapped_column(ForeignKey("user_.id"))
 
     # Relationships
     user: Mapped["User"] = relationship(
