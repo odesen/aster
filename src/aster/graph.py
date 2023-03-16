@@ -1,14 +1,31 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Self
+from typing import Self, Type
 
 import strawberry
 
 from aster.auth import models as auth_models
+from aster.auth.services import get_user_by_username
+from aster.auth.utils import verify_password
 from aster.database import session_factory
 from aster.posts import models as post_models
 from aster.posts.services import get_post_by_id
+
+
+@strawberry.type
+class LoginSuccess:
+    user: User
+
+
+@strawberry.type
+class LoginError:
+    message: str
+
+
+LoginResult: Type[LoginSuccess | LoginError] = strawberry.union(
+    "LoginResult", (LoginSuccess, LoginError)
+)
 
 
 @strawberry.type
@@ -49,4 +66,17 @@ class Query:
             return Post.marshal(post)
 
 
-schema = strawberry.Schema(Query)
+@strawberry.type
+class Mutation:
+    @strawberry.field
+    async def login(self, username: str, password: str) -> LoginResult:
+        async with session_factory.begin() as session:
+            user = await get_user_by_username(session, username=username)
+            if not user:
+                return LoginError(message="")
+            if not verify_password(password, user.password):
+                return LoginError(message="")
+            return LoginSuccess(user=User.marshal(user))
+
+
+schema = strawberry.Schema(Query, mutation=Mutation)

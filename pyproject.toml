@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aster"
-version = "0.1.0"
+version = "0.3.0"
 description = ""
 authors = ["odesen <0d3s3n@gmail.com>"]
 readme = "README.md"

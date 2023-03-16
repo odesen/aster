@@ -42,7 +42,7 @@ def create_app() -> FastAPI:
     logger = StructLoggingConfig().configure()()
     logger.info("Launching aster")
 
-    app = FastAPI()
+    app = FastAPI(title="Aster")
     app.add_middleware(TimingMiddleware)
     app.add_middleware(CorrelationIDMiddleware)
     app.add_middleware(LoggingMiddleware, logger=logger)
