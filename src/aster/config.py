@@ -3,8 +3,10 @@ from functools import lru_cache
 from typing import Any
 
 from pydantic import (
+    AnyHttpUrl,
     BaseSettings,
     DirectoryPath,
+    Field,
     FilePath,
     PostgresDsn,
     RedisDsn,
@@ -52,6 +54,8 @@ class AppSettings(
     redis_url: RedisDsn | None = None
 
     logging_level: int = logging.INFO
+
+    cors_origin: list[AnyHttpUrl] = Field(default_factory=list)
 
 
 @lru_cache()

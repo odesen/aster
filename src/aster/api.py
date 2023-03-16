@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator, TypedDict
 
 from fastapi import FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
 
 # from opentelemetry import trace
 # from opentelemetry.exporter.jaeger.thrift import JaegerExporter
@@ -43,6 +44,13 @@ def create_app() -> FastAPI:
     logger.info("Launching aster")
 
     app = FastAPI(title="Aster")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=get_settings().cors_origin,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.add_middleware(TimingMiddleware)
     app.add_middleware(CorrelationIDMiddleware)
     app.add_middleware(LoggingMiddleware, logger=logger)
