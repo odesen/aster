@@ -1,29 +1,40 @@
 GIT_REVISION = `git rev-parse HEAD`
 
-.PHONY install
+# .PHONY = install start start-database init-database reset-database format lint test
+
+# builds and installation
+
 install:
 	poetry install
 
-.PHONY start
+# bootstrap
+
 start:
 	poetry run uvicorn aster.api:create_app --factory
 
-.PHONY init-database
+start-database:
+	docker compose -f docker-compose.yml --env-file .env up db
+
 init-database:
 	poetry run python -m aster database init
 
-.PHONY drop-database
 reset-database:
 	poetry run python -m aster database reset
 
-.PHONY format
+# git hooks
+
+pre-commit:
+	pre-commit run --all-files
+
+# code style
+
 format:
 	poetry run black
 
-.PHONY lint
 lint:
 	poetry run ruff
 
-.PHONY test
+# test
+
 test:
 	poetry run pytest
