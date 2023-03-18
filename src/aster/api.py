@@ -65,7 +65,7 @@ def create_app() -> FastAPI:
     app.include_router(user_router)
     app.include_router(users_router)
     app.include_router(posts_router)
-    app.include_router(graphql_app, prefix="/graphql")
+    app.include_router(graphql_app, prefix="/graphql", include_in_schema=False)
 
     FastAPIInstrumentor.instrument_app(app)
     # resource = Resource(attributes={SERVICE_NAME: "aster"})

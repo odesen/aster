@@ -1,13 +1,16 @@
-from typing import AsyncIterable
+import time
+from typing import Any, AsyncIterable
 
 import psycopg
 from psycopg import sql
+from sqlalchemy import Engine, event
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+from structlog.contextvars import bind_contextvars, get_contextvars
 
 from aster.config import get_settings
 from aster.models import BaseModel
@@ -21,16 +24,34 @@ async def get_session() -> AsyncIterable[AsyncSession]:
         yield session
 
 
-# @event.listens_for(Engine, "before_cursor_execute")
-# def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-#     conn.info.set_default("query_start_time", []).append(time.time())
-#     logger.debug("Start query: %s", statement)
+@event.listens_for(Engine, "before_cursor_execute")
+def before_cursor_execute(
+    conn: Any,
+    cursor: Any,
+    statement: Any,
+    parameters: Any,
+    context: Any,
+    executemany: Any,
+) -> None:
+    conn.info["query_start_time"] = time.time()
 
-# @event.listens_for(Engine, "after_cursor_execute")
-# def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-#     total = time.time() - conn.info["query_start_time"].pop(-1)
-#     logger.debug("Query complete!")
-#     logger.debug("Total time: %f", total)
+
+@event.listens_for(Engine, "after_cursor_execute")
+def after_cursor_execute(
+    conn: Any,
+    cursor: Any,
+    statement: Any,
+    parameters: Any,
+    context: Any,
+    executemany: Any,
+) -> None:
+    end_time = time.time()
+    bind_contextvars(
+        sql_queries_count=get_contextvars().get("sql_queries_count", 0) + 1,
+        sql_queries_time_spent=get_contextvars().get("sql_queries_time_spent", 0.0)
+        + end_time
+        - conn.info.pop("query_start_time", end_time),
+    )
 
 
 def create_database(url: str, database: str) -> None:
