@@ -1,7 +1,9 @@
 import secrets
 from functools import lru_cache
+from typing import Annotated
 
 from aster import ASTER_ENV_PREFIX
+from fastapi import Depends
 from pydantic import BaseSettings
 
 
@@ -19,3 +21,6 @@ class AuthConfig(
 @lru_cache()
 def get_settings() -> AuthConfig:
     return AuthConfig()
+
+
+InjectAuthConfig = Annotated[AuthConfig, Depends(get_settings)]

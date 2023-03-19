@@ -1,22 +1,25 @@
 from datetime import datetime, timedelta
+from typing import Annotated
 
-from aster.database import get_session
+from aster.database import InjectSession
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from .config import AuthConfig, get_settings
+from .config import InjectAuthConfig
 from .models import User
 from .schemas import JWTToken, TokenResponse
 from .services import get_user_by_username
 from .utils import verify_password
 
+InjectToken = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="/login"))]
+InjectFormOAuth2 = Annotated[OAuth2PasswordRequestForm, Depends()]
+
 
 async def authenticate_user(
-    session: AsyncSession = Depends(get_session),
-    form: OAuth2PasswordRequestForm = Depends(),
-    config: AuthConfig = Depends(get_settings),
+    session: InjectSession,
+    form: InjectFormOAuth2,
+    config: InjectAuthConfig,
 ) -> TokenResponse:
     user = await get_user_by_username(session, username=form.username)
     if not user:
@@ -35,9 +38,7 @@ async def authenticate_user(
     return TokenResponse(access_token=encoded_token, token_type="bearer")
 
 
-async def get_valid_user_by_username(
-    username: str, session: AsyncSession = Depends(get_session)
-) -> User:
+async def get_valid_user_by_username(username: str, session: InjectSession) -> User:
     user = await get_user_by_username(session, username=username)
     if not user:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
@@ -45,9 +46,9 @@ async def get_valid_user_by_username(
 
 
 async def get_current_user(
-    token: str = Depends(OAuth2PasswordBearer(tokenUrl="/login")),
-    session: AsyncSession = Depends(get_session),
-    config: AuthConfig = Depends(get_settings),
+    token: InjectToken,
+    session: InjectSession,
+    config: InjectAuthConfig,
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -69,8 +70,11 @@ async def get_current_user(
     return user
 
 
+InjectUser = Annotated[User, Depends(get_current_user)]
+
+
 async def get_current_active_user(
-    current_user: User = Depends(get_current_user),
+    current_user: InjectUser,
 ) -> User:
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")

@@ -1,11 +1,10 @@
-from aster.database import get_session
-from aster.posts.dependencies import get_valid_post_by_id
+from aster.database import InjectSession
+from aster.posts.dependencies import InjectValidPost
 from aster.responses import AsterResponse
 from aster.routes import AsterRoute
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, status
 
-from . import models, schemas, services
+from . import schemas, services
 
 posts_router = APIRouter(prefix="/posts", route_class=AsterRoute)
 
@@ -14,7 +13,7 @@ posts_router = APIRouter(prefix="/posts", route_class=AsterRoute)
     "/", response_model=schemas.PostView, status_code=status.HTTP_201_CREATED
 )
 async def create_post(
-    data_in: schemas.PostCreate, session: AsyncSession = Depends(get_session)
+    data_in: schemas.PostCreate, session: InjectSession
 ) -> AsterResponse:
     post = await services.create_post(session, data_in=data_in)
     return AsterResponse(
@@ -23,22 +22,20 @@ async def create_post(
 
 
 @posts_router.get("/", response_model=schemas.ListPostView)
-async def list_posts(
-    username: str, session: AsyncSession = Depends(get_session)
-) -> AsterResponse:
+async def list_posts(username: str, session: InjectSession) -> AsterResponse:
     posts = await services.list_posts(session, username=username)
     return AsterResponse(schemas.ListPostView.from_orm(posts).json())
 
 
 @posts_router.get("/{id}", response_model=schemas.PostView)
-async def get_post(post: models.Post = Depends(get_valid_post_by_id)) -> AsterResponse:
+async def get_post(post: InjectValidPost) -> AsterResponse:
     return AsterResponse(schemas.PostView.from_orm(post).json())
 
 
 @posts_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(
-    post: models.Post = Depends(get_valid_post_by_id),
-    session: AsyncSession = Depends(get_session),
+    post: InjectValidPost,
+    session: InjectSession,
 ) -> AsterResponse:
     await services.delete_post(session, post=post)
     return AsterResponse(status_code=status.HTTP_204_NO_CONTENT)

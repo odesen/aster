@@ -1,7 +1,8 @@
 import time
-from typing import Any, AsyncIterable
+from typing import Annotated, Any, AsyncIterable
 
 import psycopg
+from fastapi import Depends
 from psycopg import sql
 from sqlalchemy import Engine, event
 from sqlalchemy.ext.asyncio import (
@@ -22,6 +23,9 @@ session_factory = async_sessionmaker(engine, expire_on_commit=False)
 async def get_session() -> AsyncIterable[AsyncSession]:
     async with session_factory.begin() as session:
         yield session
+
+
+InjectSession = Annotated[AsyncSession, Depends(get_session)]
 
 
 @event.listens_for(Engine, "before_cursor_execute")
