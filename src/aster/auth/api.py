@@ -3,7 +3,7 @@ from aster.responses import AsterResponse
 from aster.routes import AsterRoute
 from fastapi import APIRouter, Depends, status
 
-from . import dependencies, models, schemas, services
+from . import dependencies, schemas, services
 
 login_router = APIRouter(prefix="/login", route_class=AsterRoute)
 
@@ -12,7 +12,7 @@ login_router = APIRouter(prefix="/login", route_class=AsterRoute)
     "", response_model=schemas.TokenResponse, status_code=status.HTTP_200_OK
 )
 async def login(
-    token: schemas.TokenResponse = Depends(dependencies.authenticate_user),
+    token: dependencies.InjectGeneratedToken,
 ) -> AsterResponse:
     return AsterResponse(token.json())
 
@@ -41,7 +41,7 @@ async def list_users(session: InjectSession) -> AsterResponse:
 
 @users_router.get("/{username}", response_model=schemas.UserView)
 async def get_user(
-    user: models.User = Depends(dependencies.get_valid_user_by_username),
+    user: dependencies.InjectUser,
 ) -> AsterResponse:
     return AsterResponse(schemas.UserView.from_orm(user).json())
 
@@ -55,7 +55,7 @@ user_router = APIRouter(
 
 @user_router.get("", response_model=schemas.UserView)
 async def get_authenticated_user(
-    user: models.User = Depends(dependencies.get_current_user),
+    user: dependencies.InjectAuthenticatedUser,
 ) -> AsterResponse:
     return AsterResponse(schemas.UserView.from_orm(user).json())
 
@@ -75,7 +75,7 @@ user_block_router = APIRouter(prefix="/blocks", route_class=AsterRoute)
 
 @user_block_router.get("", response_model=schemas.ListUserView)
 async def list_users_blocked_by_authenticated_user(
-    user: dependencies.InjectUser,
+    user: dependencies.InjectAuthenticatedUser,
     session: InjectSession,
 ) -> AsterResponse:
     users = await services.list_users_blocked_by_user(session, username=user.username)
@@ -85,7 +85,7 @@ async def list_users_blocked_by_authenticated_user(
 @user_block_router.get("/{username}")
 async def check_user_blocked_by_authenticated_user(
     username: str,
-    user: dependencies.InjectUser,
+    user: dependencies.InjectAuthenticatedUser,
     session: InjectSession,
 ) -> AsterResponse:
     is_blocked = await services.check_if_user_blocked_by_user(
@@ -100,7 +100,7 @@ async def check_user_blocked_by_authenticated_user(
 @user_block_router.put("/{username}", status_code=status.HTTP_204_NO_CONTENT)
 async def block_user(
     username: str,
-    user: dependencies.InjectUser,
+    user: dependencies.InjectAuthenticatedUser,
     session: InjectSession,
 ) -> AsterResponse:
     await services.block_user(session, user=user, username_to_block=username)
@@ -111,7 +111,7 @@ async def block_user(
 @user_block_router.delete("/{username}")
 async def unblock_user(
     username: str,
-    user: dependencies.InjectUser,
+    user: dependencies.InjectAuthenticatedUser,
     session: InjectSession,
 ) -> AsterResponse:
     await services.unblock_user(session, user=user, username_to_unblock=username)

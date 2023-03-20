@@ -10,9 +10,6 @@ arq==0.25.0 ; python_version >= "3.11" and python_version < "4.0" \
 asgiref==3.6.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:71e68008da809b957b7ee4b43dbccff33d1b23519fb8344e33f049897077afac \
     --hash=sha256:9567dfe7bd8d3c8c892227827c41cce860b368104c3431da67a0c5a65a949506
-async-timeout==4.0.2 ; python_version >= "3.11" and python_version < "4.0" \
-    --hash=sha256:2163e1640ddb52b7a8c80d0a67a08587e5d245cc9c553a74a847056bc2976b15 \
-    --hash=sha256:8ca1e4fcf50d07413d66d1a5e416e42cfdf5851c981d679a09851a6853383b3c
 bcrypt==4.0.1 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:089098effa1bc35dc055366740a067a2fc76987e8ec75349eb9484061c54f535 \
     --hash=sha256:08d2947c490093a11416df18043c27abe3921558d2c03e2076ccb28a116cb6d0 \
@@ -579,12 +576,12 @@ python-dotenv==0.21.1 ; python_version >= "3.11" and python_version < "4.0" \
 python-jose[cryptography]==3.3.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:55779b5e6ad599c6336191246e95eb2293a9ddebd555f796a65f838f07e5d78a \
     --hash=sha256:9b1376b023f8b298536eedd47ae1089bcdb848f1535ab30555cd92002d78923a
-redis==4.5.1 ; python_version >= "3.11" and python_version < "4.0" \
-    --hash=sha256:1eec3741cda408d3a5f84b78d089c8b8d895f21b3b050988351e925faf202864 \
-    --hash=sha256:5deb072d26e67d2be1712603bfb7947ec3431fb0eec9c578994052e33035af6d
-redis[hiredis]==4.5.1 ; python_version >= "3.11" and python_version < "4.0" \
-    --hash=sha256:1eec3741cda408d3a5f84b78d089c8b8d895f21b3b050988351e925faf202864 \
-    --hash=sha256:5deb072d26e67d2be1712603bfb7947ec3431fb0eec9c578994052e33035af6d
+redis==4.5.2 ; python_version >= "3.11" and python_version < "4.0" \
+    --hash=sha256:4b12b3a1e9bfb43dc533330ec6d142329d0c27ea6bb6716a9d0389e8f2038a4e \
+    --hash=sha256:d8ae1a4f725eea6e3958411870fdf944c587b00ea12be28d3bd5575d8f26430c
+redis[hiredis]==4.5.2 ; python_version >= "3.11" and python_version < "4.0" \
+    --hash=sha256:4b12b3a1e9bfb43dc533330ec6d142329d0c27ea6bb6716a9d0389e8f2038a4e \
+    --hash=sha256:d8ae1a4f725eea6e3958411870fdf944c587b00ea12be28d3bd5575d8f26430c
 rfc3986[idna2008]==1.5.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:270aaf10d87d0d4e095063c65bf3ddbc6ee3d0b226328ce21e036f946e421835 \
     --hash=sha256:a86d6e1f5b1dc238b218b012df0aa79409667bb209e58da56d0b94704e712a97

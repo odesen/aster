@@ -38,11 +38,17 @@ async def authenticate_user(
     return TokenResponse(access_token=encoded_token, token_type="bearer")
 
 
+InjectGeneratedToken = Annotated[TokenResponse, Depends(authenticate_user)]
+
+
 async def get_valid_user_by_username(username: str, session: InjectSession) -> User:
     user = await get_user_by_username(session, username=username)
     if not user:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     return user
+
+
+InjectUser = Annotated[User, Depends(get_valid_user_by_username)]
 
 
 async def get_current_user(
@@ -70,11 +76,11 @@ async def get_current_user(
     return user
 
 
-InjectUser = Annotated[User, Depends(get_current_user)]
+InjectAuthenticatedUser = Annotated[User, Depends(get_current_user)]
 
 
 async def get_current_active_user(
-    current_user: InjectUser,
+    current_user: InjectAuthenticatedUser,
 ) -> User:
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
