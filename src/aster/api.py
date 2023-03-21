@@ -23,6 +23,7 @@ from aster.middlewares import (
     TimingMiddleware,
 )
 from aster.posts.api import posts_router
+from aster.routes import AsterRoute
 
 
 class State(TypedDict):
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
     logger.info("Launching aster")
 
     app = FastAPI(title="Aster")
+    app.router.route_class = AsterRoute
     app.add_middleware(
         CORSMiddleware,
         allow_origins=get_settings().cors_origin,

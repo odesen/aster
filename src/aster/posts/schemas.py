@@ -14,6 +14,7 @@ class PostCreate(PostBase):
 
 
 class PostView(PostBase):
+    id: int
     created_at: datetime
     user: UserView
 

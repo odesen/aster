@@ -3,21 +3,25 @@ from typing import Sequence
 from aster.auth.models import User
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import contains_eager
+from sqlalchemy.orm import contains_eager, joinedload
 
 from .models import Post
 from .schemas import PostCreate
 
 
-async def create_post(session: AsyncSession, *, data_in: PostCreate) -> Post:
-    post = Post(**data_in.dict())
+async def create_post(
+    session: AsyncSession, *, data_in: PostCreate, user: User
+) -> Post:
+    post = Post(**data_in.dict(), user=user)
     session.add(post)
     await session.flush()
     return post
 
 
 async def get_post_by_id(session: AsyncSession, *, post_id: int) -> Post | None:
-    res = await session.execute(select(Post).where(Post.id == post_id))
+    res = await session.execute(
+        select(Post).options(joinedload(Post.user)).where(Post.id == post_id)
+    )
     return res.scalar_one_or_none()
 
 
