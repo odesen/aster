@@ -13,7 +13,7 @@ start:
 	poetry run uvicorn aster.api:create_app --factory
 
 start-database:
-	docker compose -f docker-compose.yml --env-file .env up db
+	docker compose -f deployments/docker-compose.yml --env-file .env up db
 
 init-database:
 	poetry run python -m aster database init
