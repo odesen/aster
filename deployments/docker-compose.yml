@@ -6,20 +6,32 @@ services:
     build:
       context: ..
       dockerfile: ./Dockerfile
+    labels:
+      - "traefik.http.routers.aster.rule=Host(`aster.docker.localhost`)"
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://loki-write:3100/loki/api/v1/push"
+        loki-retries: 5
+        loki-batch-size: 400
 
   db:
     image: postgres:15
     volumes:
       - db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_PASSWORD=${ASTER_DATABASE_CREDENTIAL_PASSWORD}
+    labels:
+      - "traefik.http.routers.pg.rule=Host(`pg.docker.localhost`)"
 
   reverse-proxy:
-    image: nginx:1.23.3
+    image: traefik:v2.10
     ports:
-      - "8080:80"
+      - "80:80"
+      - "8080:8080"
+    command: [ "--api.insecure=true", "--providers.docker" ]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
   redis:
     image: redis:7.0.9-alpine
@@ -30,5 +42,22 @@ services:
   grafana:
     image: grafana/grafana:8.5.22
 
+  minio:
+    image: minio/minio:RELEASE.2023-03-24T21-41-23Z
+    command: [ "minio", "server", "/data" ]
+    volumes:
+      - minio-data:/data
+
+  loki-read:
+    image: grafana/loki:2.7.4
+    depends_on:
+      - minio
+
+  loki-write:
+    image: grafana/loki:2.7.4
+    depends_on:
+      - minio
+
 volumes:
   db-data:
+  minio-data:
