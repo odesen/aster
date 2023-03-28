@@ -5,30 +5,161 @@ services:
     image: aster
     build:
       context: ..
-      dockerfile: ./Dockerfile
+      dockerfile: ./deployments/Dockerfile
+    command:
+      [
+        "server",
+        "start",
+        "aster.api:create_app",
+        "--factory",
+        "--no-use-colors",
+        "--no-access-log",
+        "--host",
+        "0.0.0.0"
+      ]
+    environment:
+      - ASTER_DATABASE_HOSTNAME=db
+      - ASTER_DATABASE_CREDENTIAL_USER=${ASTER_DATABASE_CREDENTIAL_USER}
+      - ASTER_DATABASE_CREDENTIAL_PASSWORD=${ASTER_DATABASE_CREDENTIAL_PASSWORD}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.aster.rule=Host(`aster.localhost`)"
+      - "traefik.http.routers.aster.entrypoints=http"
+      - "traefik.http.services.aster.loadbalancer.server.port=8000"
+    networks:
+      - default
+      - loki
+    depends_on:
+      - db
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+        loki-retries: 5
+        loki-external-labels: environment=test
 
   db:
     image: postgres:15
     volumes:
       - db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_PASSWORD=${ASTER_DATABASE_CREDENTIAL_PASSWORD}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.postgres.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.postgres.entrypoints=tcp-pg"
+      - "traefic.tcp.routers.postgres.tls=false"
+      - "traefik.tcp.services.postgres.loadbalancer.server.port=5432"
 
   reverse-proxy:
-    image: nginx:1.23.3
+    image: traefik:v2.10
     ports:
-      - "8080:80"
+      - "8000:8000"
+      - "8080:8080"
+      - "5432:5432"
+    command:
+      [
+        "--api.insecure=true",
+        "--providers.docker",
+        "--providers.docker.exposedByDefault=false",
+        "--entryPoints.http.address=:8000",
+        "--entryPoints.tcp-pg.address=:5432"
+      ]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
-  redis:
-    image: redis:7.0.9-alpine
+  # redis:
+  #   image: redis:7.0.9-alpine
 
-  prometheus:
-    image: prom/prometheus:v2.43.0
+  # prometheus:
+  #   image: prom/prometheus:v2.43.0
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
+  #     - "traefik.http.routers.prometheus.entrypoints=http"
 
   grafana:
     image: grafana/grafana:8.5.22
+    volumes:
+      - grafana-data:/var/lib/grafana
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+      - "traefik.http.routers.grafana.entrypoints=http"
+    networks:
+      - default
+      - loki
+
+  minio:
+    image: minio/minio:RELEASE.2023-03-24T21-41-23Z
+    command:
+      [
+        "minio",
+        "server",
+        "/data",
+        "--console-address",
+        ":9001"
+      ]
+    volumes:
+      - minio-data:/data
+    environment:
+      - MINIO_BROWSER_REDIRECT_URL=http://minio-console.localhost:8000
+      # - MINIO_PROMETHEUS_URL=value
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.service=minio"
+      - "traefik.http.routers.minio.rule=Host(`minio.localhost`)"
+      - "traefik.http.routers.minio.entrypoints=http"
+      - "traefik.http.services.minio.loadbalancer.server.port=9000"
+      - "traefik.http.routers.minio-console.service=minio-console"
+      - "traefik.http.routers.minio-console.rule=Host(`minio-console.localhost`)"
+      - "traefik.http.routers.minio-console.entrypoints=http"
+      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
+    networks:
+      - default
+      - loki
+
+  loki-read:
+    image: grafana/loki:2.7.5
+    command:
+      [
+        "-target=read",
+        "-config.file=/etc/loki/local-config.yaml"
+      ]
+    volumes:
+      - ./loki.yml:/etc/loki/local-config.yaml
+    depends_on:
+      - minio
+    networks:
+      - loki
+
+  loki-write:
+    image: grafana/loki:2.7.5
+    command:
+      [
+        "-target=write",
+        "-config.file=/etc/loki/local-config.yaml"
+      ]
+    volumes:
+      - ./loki.yml:/etc/loki/local-config.yaml
+    depends_on:
+      - minio
+    ports:
+      - 3100:3100
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.loki.rule=Host(`loki.localhost`)"
+    #   - "traefik.http.routers.loki.entrypoints=http"
+    #   - "traefik.http.services.loki.loadbalancer.server.port=3100"
+    networks:
+      - loki
+      # - default
 
 volumes:
   db-data:
+  minio-data:
+  grafana-data:
+
+
+networks:
+  loki:
