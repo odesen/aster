@@ -63,6 +63,6 @@ def create_app() -> FastAPI:
     app.include_router(posts_router)
     app.include_router(graphql_app, prefix="/graphql", include_in_schema=False)
 
-    Instrumentator().instrument(app).expose(app)
+    Instrumentator().instrument(app).expose(app, include_in_schema=False)
 
     return app
