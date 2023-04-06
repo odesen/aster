@@ -68,7 +68,7 @@ class StructLoggingConfig:
             from structlog import configure, get_logger
 
             # we now configure structlog
-            configure(**{k: v for k, v in asdict(self).items()})
+            configure(**dict(asdict(self).items()))
             return get_logger
         except ImportError as e:  # pragma: no cover
             raise e
@@ -89,10 +89,4 @@ class QueueListenerHandler(QueueHandler):
         self.listener = QueueListener(self.queue, *handlers)
         self.listener.start()
 
-        atexit.register(self.listener.stop)
-        atexit.register(self.listener.stop)
-        self.listener = QueueListener(self.queue, *handlers)
-        self.listener.start()
-
-        atexit.register(self.listener.stop)
         atexit.register(self.listener.stop)
