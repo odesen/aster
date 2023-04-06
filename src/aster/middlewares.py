@@ -37,10 +37,10 @@ class LoggingMiddleware:
         try:
             await self.app(scope, receive, send)
         except Exception as exc:
-            self.logger.exception("Exception during request: %s" % type(exc))
+            await self.logger.aexception("Exception during request: %s" % type(exc))
             raise exc
         else:
-            self.logger.info("HTTP Request")
+            await self.logger.ainfo("HTTP Request")
 
     async def extract_response_data(self, message: HTTPResponseStartEvent) -> None:
         bind_contextvars(
