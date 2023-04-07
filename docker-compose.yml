@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   aster:
-    image: aster
+    image: odesen/aster
     build:
       context: .
       dockerfile: ./Dockerfile
