@@ -1,0 +1,35 @@
+version: '3.4'
+
+services:
+  aster:
+    image: aster
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command:
+      [
+        "server",
+        "start",
+        "aster.api:create_app",
+        "--factory",
+        "--no-use-colors",
+        "--no-access-log",
+        "--host",
+        "0.0.0.0"
+      ]
+    environment:
+      - ASTER_DATABASE_HOSTNAME=db
+      - ASTER_DATABASE_CREDENTIAL_USER=${ASTER_DATABASE_CREDENTIAL_USER}
+      - ASTER_DATABASE_CREDENTIAL_PASSWORD=${ASTER_DATABASE_CREDENTIAL_PASSWORD}
+  db:
+    image: postgres:15
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${ASTER_DATABASE_CREDENTIAL_PASSWORD}
+
+  redis:
+    image: redis:7.0.9-alpine
+
+volumes:
+  db-data:

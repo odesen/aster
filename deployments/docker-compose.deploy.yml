@@ -2,39 +2,13 @@ version: '3.4'
 
 services:
   aster:
-    image: aster
-    build:
-      context: ..
-      dockerfile: ./deployments/Dockerfile
-    command:
-      [
-        "server",
-        "start",
-        "aster.api:create_app",
-        "--factory",
-        "--no-use-colors",
-        "--no-access-log",
-        "--host",
-        "0.0.0.0"
-      ]
-    environment:
-      - ASTER_DATABASE_HOSTNAME=db
-      - ASTER_DATABASE_CREDENTIAL_USER=${ASTER_DATABASE_CREDENTIAL_USER}
-      - ASTER_DATABASE_CREDENTIAL_PASSWORD=${ASTER_DATABASE_CREDENTIAL_PASSWORD}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.aster.rule=Host(`aster.localhost`)"
       - "traefik.http.routers.aster.entrypoints=http"
       - "traefik.http.services.aster.loadbalancer.server.port=8000"
-    depends_on:
-      - db
 
   db:
-    image: postgres:15
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_PASSWORD=${ASTER_DATABASE_CREDENTIAL_PASSWORD}
     labels:
       - "traefik.enable=true"
       - "traefik.tcp.routers.postgres.rule=HostSNI(`*`)"
@@ -58,9 +32,6 @@ services:
       ]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-
-  # redis:
-  #   image: redis:7.0.9-alpine
 
   prometheus:
     image: prom/prometheus:v2.43.0
@@ -100,7 +71,6 @@ services:
       - minio-data:/data
     environment:
       - MINIO_BROWSER_REDIRECT_URL=http://minio-console.localhost:8000
-      # - MINIO_PROMETHEUS_URL=value
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.minio.service=minio"
@@ -141,7 +111,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
-  db-data:
   minio-data:
   grafana-data:
   prometheus-data:
