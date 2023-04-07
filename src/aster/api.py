@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, TypedDict
 
-from fastapi import FastAPI, Response
+from fastapi import APIRouter, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 from strawberry.fastapi import GraphQLRouter
@@ -51,7 +51,7 @@ def create_app() -> FastAPI:
     app.add_middleware(CorrelationIDMiddleware)
     app.add_middleware(LoggingMiddleware, logger=logger)
 
-    graphql_app = GraphQLRouter(schema)
+    graphql_app: APIRouter = GraphQLRouter(schema)
 
     async def healthcheck() -> Response:
         return Response("Hello world!")

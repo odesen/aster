@@ -16,7 +16,7 @@ passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 orjson = "^3.8.2"
 python-dotenv = "^0.21.0"
 psycopg = "^3.1.4"
-strawberry-graphql = "^0.170.0"
+strawberry-graphql = "^0.171.0"
 uvicorn = "^0.20.0"
 redis = "^4.5.1"
 alembic = "^1.9.3"
@@ -35,7 +35,7 @@ coverage = "^7.2.1"
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.261"
 uvicorn = {extras = ["standard"], version = "^0.20.0"}
-strawberry-graphql = {extras = ["debug-server"], version = "^0.170.0"}
+strawberry-graphql = {extras = ["debug-server"], version = "^0.171.0"}
 mypy = "^1.2.0"
 pre-commit = "^3.1.1"
 dirty-equals = "^0.5.0"
