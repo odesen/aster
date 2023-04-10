@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v4.4.0
     hooks:
     -   id: check-added-large-files
     -   id: check-toml
@@ -12,7 +12,7 @@ repos:
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.2.2
+    rev: v3.3.1
     hooks:
     -   id: pyupgrade
         args:
@@ -25,12 +25,12 @@ repos:
         args:
         - --fix
 -   repo: https://github.com/psf/black
-    rev: 22.10.0
+    rev: 23.3.0
     hooks:
     -   id: black
         args: [--config=pyproject.toml]
 -   repo: https://github.com/python-poetry/poetry
-    rev: 1.4.0
+    rev: 1.4.2
     hooks:
         - id: poetry-check
         - id: poetry-lock
