@@ -4,7 +4,7 @@ SHELL := /bin/bash
 
 GIT_REVISION = `git rev-parse HEAD`
 DOCKER_IMAGE = "$(USER)/$(shell basename $(CURDIR))"
-VERSION := $(shell python -c 'import tomli; print(tomlib.load(open("pyproject.toml", "rb"))["tool"]["poetry"]["version"])')
+VERSION := $(shell python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["tool"]["poetry"]["version"])')
 
 # .PHONY = install start start-database init-database reset-database format lint test
 
@@ -22,7 +22,7 @@ clean-pyc:
 	find . -name '__pycache__' -exec rm -fr {} +
 
 clean-test:
-	rm -f .coverage
+	rm -f .coverage*
 	rm -fr .pytest_cache
 	rm -fr .mypy_cache
 	rm -fr .ruff_cache
@@ -46,7 +46,7 @@ start:
 	poetry run uvicorn aster.api:create_app --factory
 
 start-database:
-	docker compose -f deployments/docker-compose.yml --env-file .env up db
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env up db
 
 init-database:
 	poetry run python -m aster database init
@@ -57,7 +57,7 @@ reset-database:
 # git hooks
 
 pre-commit:
-	pre-commit run --all-files
+	poetry run pre-commit run --all-files
 
 # code style
 
@@ -71,3 +71,9 @@ lint:
 
 test:
 	poetry run pytest
+
+coverage:
+	poetry run coverage run -m pytest
+
+coverage-report:
+	poetry run coverage combine && poetry run coverage report -m
