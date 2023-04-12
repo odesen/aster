@@ -39,7 +39,10 @@ strawberry-graphql = {extras = ["debug-server"], version = "^0.171.1"}
 mypy = "^1.2.0"
 pre-commit = "^3.2.2"
 dirty-equals = "^0.5.0"
-rich = "^13.3.3"
+rich = "^12.6.0"
+
+[tool.poetry.group.ci.dependencies]
+dagger-io = "^0.5.1"
 
 [tool.poetry.group.docs]
 optional = true
