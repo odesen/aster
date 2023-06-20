@@ -20,7 +20,7 @@ async def main() -> None:
         RedisSettings(
             host=redis_url.host or "localhost",
             port=int(redis_url.port) if redis_url.port else 6379,
-            username=redis_url.user,
+            username=redis_url.username,
             password=redis_url.password,
         )
     )

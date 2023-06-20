@@ -17,13 +17,16 @@ def convert_datetime_to_gmt(dt: datetime) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M:%S%z")
 
 
-class ORJSONModel(BaseModel):
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
-        json_encoders = {datetime: convert_datetime_to_gmt}
+class ORJSONModel(
+    BaseModel,
+):
+    # model_config = ConfigDict(
+    #     json_loads=orjson.loads,
+    #     json_dumps=orjson_dumps,
+    #     json_encoders={datetime: convert_datetime_to_gmt},
+    # )
 
     def serializable_dict(self, **kwargs: Any) -> Any:
-        default_dict = super().dict(**kwargs)
+        default_dict = super().model_dump(**kwargs)
 
         return jsonable_encoder(default_dict)

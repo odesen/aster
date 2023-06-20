@@ -11,7 +11,7 @@ from .schemas import UserCreate
 
 async def create_user(session: AsyncSession, *, data_in: UserCreate) -> User:
     user = User(
-        **data_in.dict(exclude={"password"}),
+        **data_in.model_dump(exclude={"password"}),
         password=get_password_hash(data_in.password.get_secret_value()),
     )
     session.add(user)

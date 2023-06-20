@@ -38,7 +38,7 @@ def database_drop(yes: bool) -> None:
         f"Are you sure you want to drop '{config.database_hostname}:{config.database_name}' ?"
     ):
         drop_database(
-            f"postgresql://{config.database_credential_user.get_secret_value()}:{config.database_credential_password.get_secret_value()}@{config.database_hostname}:{config.database_port}",
+            f"postgresql://{config.database_url}:{config.database_credential_password.get_secret_value()}@{config.database_hostname}:{config.database_port}",
             config.database_name,
         )
         click.secho("Success.", fg="green")
@@ -86,7 +86,7 @@ def aster_server() -> None:
 def server_config() -> None:
     from .config import get_settings
 
-    click.secho(get_settings().dict(), fg="blue")
+    click.secho(get_settings().model_dump(), fg="blue")
 
 
 aster_server.add_command(uvicorn.main, name="start")

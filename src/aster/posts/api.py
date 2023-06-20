@@ -19,19 +19,19 @@ async def create_post(
     post = await services.create_post(session, data_in=data_in, user=user)
     await session.commit()
     return AsterResponse(
-        schemas.PostView.from_orm(post).json(), status.HTTP_201_CREATED
+        schemas.PostView.model_validate(post).model_dump_json(), status.HTTP_201_CREATED
     )
 
 
 @posts_router.get("", response_model=schemas.ListPostView)
 async def list_posts(username: str, session: InjectSession) -> AsterResponse:
     posts = await services.list_posts(session, username=username)
-    return AsterResponse(schemas.ListPostView.from_orm(posts).json())
+    return AsterResponse(schemas.ListPostView.model_validate(posts).model_dump_json())
 
 
 @posts_router.get("/{post_id}", response_model=schemas.PostView)
 async def get_post(post: InjectValidPost) -> AsterResponse:
-    return AsterResponse(schemas.PostView.from_orm(post).json())
+    return AsterResponse(schemas.PostView.model_validate(post).model_dump_json())
 
 
 @posts_router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)

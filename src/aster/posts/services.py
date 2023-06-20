@@ -12,7 +12,7 @@ from .schemas import PostCreate
 async def create_post(
     session: AsyncSession, *, data_in: PostCreate, user: User
 ) -> Post:
-    post = Post(**data_in.dict(), user=user)
+    post = Post(**data_in.model_dump(), user=user)
     session.add(post)
     await session.flush()
     return post

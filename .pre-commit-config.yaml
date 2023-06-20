@@ -45,6 +45,6 @@ repos:
         - --ignore-missing-imports
 
         additional_dependencies:
-        - pydantic
+        - pydantic==2.0b3
         - sqlalchemy
         - strawberry-graphql

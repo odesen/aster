@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 from typing import Annotated
 
+from aster.config import InjectSettings
 from aster.database import InjectSession
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 
-from .config import InjectAuthConfig
 from .models import User
 from .schemas import JWTToken, TokenResponse
 from .services import get_user_by_username
@@ -19,7 +19,7 @@ InjectFormOAuth2 = Annotated[OAuth2PasswordRequestForm, Depends()]
 async def authenticate_user(
     session: InjectSession,
     form: InjectFormOAuth2,
-    config: InjectAuthConfig,
+    config: InjectSettings,
 ) -> TokenResponse:
     user = await get_user_by_username(session, username=form.username)
     if not user:
@@ -31,7 +31,7 @@ async def authenticate_user(
         exp=datetime.utcnow() + timedelta(minutes=config.access_token_expire_minutes),
     )
     encoded_token = jwt.encode(
-        claims=token_data.dict(exclude_none=True),
+        claims=token_data.model_dump(exclude_none=True),
         key=config.secret_key,
         algorithm=config.algorithm,
     )
@@ -54,7 +54,7 @@ InjectUser = Annotated[User, Depends(get_valid_user_by_username)]
 async def get_current_user(
     token: InjectToken,
     session: InjectSession,
-    config: InjectAuthConfig,
+    config: InjectSettings,
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

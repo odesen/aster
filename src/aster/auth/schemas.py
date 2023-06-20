@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from aster.schemas import ORJSONModel
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, Field, RootModel, SecretStr
 
 
 def _normalize_datetime(value: datetime) -> datetime:
@@ -19,20 +19,13 @@ class UserCreate(UserBase):
     password: SecretStr = Field(max_length=256)
 
 
-class UserView(UserBase):
+class UserView(UserBase, from_attributes=True):
     id: int
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
 
-
-class ListUserView(ORJSONModel):
-    __root__: list[UserView]
-
-    class Config:
-        orm_mode = True
+ListUserView = RootModel[list[UserView]]
 
 
 class TokenResponse(BaseModel):

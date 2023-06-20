@@ -14,7 +14,7 @@ login_router = APIRouter(prefix="/login", route_class=AsterRoute)
 async def login(
     token: dependencies.InjectGeneratedToken,
 ) -> AsterResponse:
-    return AsterResponse(token.json())
+    return AsterResponse(token.model_dump_json())
 
 
 users_router = APIRouter(prefix="/users", route_class=AsterRoute)
@@ -29,21 +29,21 @@ async def register_user(
     user = await services.create_user(session, data_in=data_in)
     await session.commit()
     return AsterResponse(
-        schemas.UserView.from_orm(user).json(), status.HTTP_201_CREATED
+        schemas.UserView.model_validate(user).model_dump_json(), status.HTTP_201_CREATED
     )
 
 
 @users_router.get("", response_model=schemas.ListUserView)
 async def list_users(session: InjectSession) -> AsterResponse:
     users = await services.list_users(session)
-    return AsterResponse(schemas.ListUserView.from_orm(users).json())
+    return AsterResponse(schemas.ListUserView.model_validate(users).model_dump_json())
 
 
 @users_router.get("/{username}", response_model=schemas.UserView)
 async def get_user(
     user: dependencies.InjectUser,
 ) -> AsterResponse:
-    return AsterResponse(schemas.UserView.from_orm(user).json())
+    return AsterResponse(schemas.UserView.model_validate(user).model_dump_json())
 
 
 user_router = APIRouter(
@@ -57,7 +57,7 @@ user_router = APIRouter(
 async def get_authenticated_user(
     user: dependencies.InjectAuthenticatedUser,
 ) -> AsterResponse:
-    return AsterResponse(schemas.UserView.from_orm(user).json())
+    return AsterResponse(schemas.UserView.model_validate(user).model_dump_json())
 
 
 @user_router.patch("")
@@ -79,7 +79,7 @@ async def list_users_blocked_by_authenticated_user(
     session: InjectSession,
 ) -> AsterResponse:
     users = await services.list_users_blocked_by_user(session, username=user.username)
-    return AsterResponse(schemas.ListUserView.from_orm(users).json())
+    return AsterResponse(schemas.ListUserView.model_validate(users).model_dump_json())
 
 
 @user_block_router.get("/{username}")

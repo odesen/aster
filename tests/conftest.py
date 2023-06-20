@@ -165,7 +165,9 @@ def api_create_post(
     client: AsyncClient,
 ) -> Callable[[PostCreate], Coroutine[Any, Any, Response]]:
     async def _r(data_in: PostCreate) -> Response:
-        return await client.post(f"{client.base_url}/posts", content=data_in.json())
+        return await client.post(
+            f"{client.base_url}/posts", content=data_in.model_dump_json()
+        )
 
     return _r
 
