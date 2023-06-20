@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from aster.auth.models import User
 
 
-class Post(BaseModel, kw_only=True):  # type: ignore
+class Post(BaseModel, kw_only=True):
     __tablename__ = "post"
 
     # Columns
