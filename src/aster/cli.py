@@ -6,18 +6,21 @@ import uvicorn
 import aster
 
 
-@click.group()
+@click.group(help="Providing configuration, server, database commands for aster.")
 @click.version_option(aster.ASTER_VERSION)
 def aster_cli() -> None:
     ...
 
 
-@aster_cli.group("database")
+@aster_cli.group(
+    "database",
+    help="Contains all aster database-related commands (init, heads, history, upgrade, drop).",
+)
 def aster_database() -> None:
     ...
 
 
-@aster_database.command("init")
+@aster_database.command("init", help="Initializes a new database.")
 def database_init() -> None:
     from .database import engine, init_database
 
@@ -26,7 +29,7 @@ def database_init() -> None:
     click.secho("Success.", fg="green")
 
 
-@aster_database.command("drop")
+@aster_database.command("drop", help="Drops all data in database.")
 @click.option("--yes", is_flag=True, help="Silences all confirmation prompts.")
 def database_drop(yes: bool) -> None:
     from .config import get_settings
@@ -44,14 +47,14 @@ def database_drop(yes: bool) -> None:
         click.secho("Success.", fg="green")
 
 
-@aster_database.command("upgrade")
+@aster_database.command("upgrade", help="Upgrades database schema to newest version.")
 @click.option("--dry-run", is_flag=True, default=False, help="Show SQL or execute it.")
 @click.option("--revision", nargs=1, default="head", help="Revision identifier.")
 def database_upgrade(dry_run: bool, revision: str) -> None:
     ...
 
 
-@aster_database.command("heads")
+@aster_database.command("heads", help="Shows the heads of the database.")
 def database_head() -> None:
     from alembic.command import heads
     from alembic.config import Config as AlembicConfig
@@ -64,7 +67,7 @@ def database_head() -> None:
     heads(alembic_cfg)
 
 
-@aster_database.command("history")
+@aster_database.command("history", help="Shows the history of the database.")
 def database_history() -> None:
     from alembic.command import history
     from alembic.config import Config as AlembicConfig
@@ -77,12 +80,14 @@ def database_history() -> None:
     history(alembic_cfg)
 
 
-@aster_cli.group("server")
+@aster_cli.group(
+    "server", help="Contains all aster server-related commands (start, config)"
+)
 def aster_server() -> None:
     ...
 
 
-@aster_server.command("config")
+@aster_server.command("config", help="Prints the current config")
 def server_config() -> None:
     from .config import get_settings
 

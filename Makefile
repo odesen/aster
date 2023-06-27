@@ -27,9 +27,7 @@ clean-test:
 	rm -fr .mypy_cache
 	rm -fr .ruff_cache
 
-
 # builds and installation
-
 
 install:
 	poetry install

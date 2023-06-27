@@ -40,7 +40,7 @@ class AppSettings(BaseSettings):
     database_engine_pool_size: int = 20
     database_engine_max_overflow: int = 0
 
-    @computed_field  # type: ignore[misc]
+    @computed_field(repr=False)  # type: ignore[misc]
     @cached_property
     def sqlalchemy_database_url(self) -> PostgresDsn:
         try:
@@ -51,7 +51,7 @@ class AppSettings(BaseSettings):
             ...
         return url
 
-    @computed_field  # type: ignore[misc]
+    @computed_field(repr=False)  # type: ignore[misc]
     @cached_property
     def psycopg_database_url(self) -> PostgresDsn:
         try:
