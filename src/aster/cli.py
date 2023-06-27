@@ -38,7 +38,7 @@ def database_drop(yes: bool) -> None:
         f"Are you sure you want to drop '{config.database_hostname}:{config.database_name}' ?"
     ):
         drop_database(
-            f"postgresql://{config.database_url}:{config.database_credential_password.get_secret_value()}@{config.database_hostname}:{config.database_port}",
+            None,
             config.database_name,
         )
         click.secho("Success.", fg="green")

@@ -16,7 +16,7 @@ from structlog.contextvars import bind_contextvars, get_contextvars
 from aster.config import get_settings
 from aster.models import BaseModel
 
-engine = create_async_engine(str(get_settings().database_url))
+engine = create_async_engine(str(get_settings().sqlalchemy_database_url))
 session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
 
@@ -75,9 +75,10 @@ def check_database_exists(url: str, database: str) -> bool:
 
 async def init_database(engine: AsyncEngine) -> None:
     config = get_settings()
-    url_psycopg = f"postgresql://{config.database_credential_user.get_secret_value()}:{config.database_credential_password.get_secret_value()}@{config.database_hostname}:{config.database_port}"
-    if not check_database_exists(url_psycopg, config.database_name):
-        create_database(url_psycopg, config.database_name)
+    if not check_database_exists(
+        str(config.psycopg_database_url), config.database_name
+    ):
+        create_database(str(config.psycopg_database_url), config.database_name)
     async with engine.begin() as conn:
         await conn.run_sync(BaseModel.metadata.create_all)
 
@@ -86,10 +87,10 @@ def init_schema() -> None:
     ...
 
 
-def drop_database(url: str, database: str) -> None:
-    config = get_settings()
-    url_psycopg = f"postgresql://{config.database_credential_user.get_secret_value()}:{config.database_credential_password.get_secret_value()}@{config.database_hostname}:{config.database_port}"
-    with psycopg.connect(url_psycopg, autocommit=True) as conn, conn.cursor() as cur:
+def drop_database(url: str | None, database: str) -> None:
+    if url is None:
+        url = str(get_settings().psycopg_database_url)
+    with psycopg.connect(url, autocommit=True) as conn, conn.cursor() as cur:
         cur.execute(
             """
             SELECT pg_terminate_backend(pg_stat_activity.pid)
