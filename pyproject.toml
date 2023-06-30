@@ -9,8 +9,8 @@ packages = [{include = "aster", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 fastapi = {allow-prereleases = true, version = "0.100.0b1"}
-pydantic = {allow-prereleases = true, version = "2.0b3"}
-pydantic-settings = {allow-prereleases = true, version = "2.0b1"}
+pydantic = "2.0"
+pydantic-settings = "2.0.0"
 sqlalchemy = "^2.0.16"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
@@ -27,6 +27,7 @@ arq = "^0.25.0"
 prometheus-fastapi-instrumentator = "^6.0.0"
 asgiref = "^3.7.2"
 python-multipart = "^0.0.6"
+typing-extensions = "~4.6.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.3.2"
