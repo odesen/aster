@@ -556,13 +556,13 @@ gmpy2 = ["gmpy2"]
 
 [[package]]
 name = "fastapi"
-version = "0.100.0b1"
+version = "0.100.0b2"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "fastapi-0.100.0b1-py3-none-any.whl", hash = "sha256:3e45c7209410503e4f372e38d9f47ec01cc1e23bbd4a796f6dfe23023584f622"},
-    {file = "fastapi-0.100.0b1.tar.gz", hash = "sha256:2e699a1c924ecbda8b4e942ddd04899038d9bfb39077a1ef7a3164879609dc11"},
+    {file = "fastapi-0.100.0b2-py3-none-any.whl", hash = "sha256:9b382e75d936ad0cd03adf586f61cc37e4c3e834f04901dedf49af44052b52df"},
+    {file = "fastapi-0.100.0b2.tar.gz", hash = "sha256:67882763f965ed0cb3b2d9de4c90a9f15a2d972682c5cc386969237f8961d238"},
 ]
 
 [package.dependencies]
@@ -2529,4 +2529,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "3b3ef45279287a5f2ddbd22d79771bf0bc84c6c04d6a5b7204ab1ba56bcd87db"
+content-hash = "4e5a936dbbc72ed80b5c03ad63860f86dcc39e200b499561cb93563a7e685e98"
