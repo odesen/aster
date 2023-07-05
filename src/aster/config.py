@@ -4,6 +4,7 @@ from functools import cached_property, lru_cache
 from pathlib import Path
 from typing import Annotated
 
+import structlog
 from fastapi import Depends
 from pydantic import (
     AnyHttpUrl,
@@ -16,20 +17,18 @@ from pydantic import (
     ValidationError,
     computed_field,
 )
-from pydantic_settings import BaseSettings
-from pydantic_settings.main import SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from aster import ASTER_ENV_PREFIX
+
+logger = structlog.get_logger()
 
 
 class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        case_sensitive=False,
         env_file=Path(".env"),
         env_file_encoding="utf-8",
-        env_nested_delimiter=None,
         env_prefix=ASTER_ENV_PREFIX,
-        secrets_dir=None,
     )
     database_scheme: str = "postgresql+psycopg"
     database_hostname: str
@@ -48,7 +47,7 @@ class AppSettings(BaseSettings):
                 f"{self.database_scheme}://{self.database_credential_user.get_secret_value()}:{self.database_credential_password.get_secret_value()}@{self.database_hostname}:{str(self.database_port)}/{self.database_name}"
             )
         except ValidationError:
-            ...
+            logger.aexception("Invalid config")
         return url
 
     @computed_field(repr=False)  # type: ignore[misc]
@@ -59,7 +58,7 @@ class AppSettings(BaseSettings):
                 f"postgresql://{self.database_credential_user.get_secret_value()}:{self.database_credential_password.get_secret_value()}@{self.database_hostname}:{str(self.database_port)}"
             )
         except ValidationError:
-            ...
+            logger.aexception("Invalid config")
         return url
 
     alembic_ini_path: FilePath = "alembic.ini"  # type: ignore
