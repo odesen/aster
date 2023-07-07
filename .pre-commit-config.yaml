@@ -12,14 +12,14 @@ repos:
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.7.0
+    rev: v3.8.0
     hooks:
     -   id: pyupgrade
         args:
         - --py3-plus
         - --keep-runtime-typing
 -   repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.272
+    rev: v0.0.277
     hooks:
     -   id: ruff
         args:
@@ -37,7 +37,7 @@ repos:
         - id: poetry-export
           args: ["-f", "requirements.txt", "-o", "requirements.txt"]
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v1.3.0'
+    rev: 'v1.4.1'
     hooks:
     -   id: mypy
         args:
@@ -45,6 +45,6 @@ repos:
         - --ignore-missing-imports
 
         additional_dependencies:
-        - pydantic==2.0b3
+        - pydantic
         - sqlalchemy
         - strawberry-graphql

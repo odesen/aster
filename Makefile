@@ -57,6 +57,9 @@ reset-database:
 pre-commit:
 	poetry run pre-commit run --all-files
 
+pre-commit-autoupdate:
+	poetry run pre-commit autoupdate
+
 # code style
 
 format:
