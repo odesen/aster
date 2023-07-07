@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Self, Type
+from typing import Annotated, Self, Union
 
 import strawberry
 
@@ -23,9 +23,9 @@ class LoginError:
     message: str
 
 
-LoginResult: Type[LoginSuccess | LoginError] = strawberry.union(
-    "LoginResult", (LoginSuccess, LoginError)
-)
+LoginResult = Annotated[
+    Union[LoginSuccess, LoginError], strawberry.union("LoginResult")
+]
 
 
 @strawberry.type
@@ -73,9 +73,9 @@ class Mutation:
         async with session_factory.begin() as session:
             user = await get_user_by_username(session, username=username)
             if not user:
-                return LoginError(message="")
+                return LoginError(message="Something went wrong")
             if not verify_password(password, user.password):
-                return LoginError(message="")
+                return LoginError(message="Something went wrong")
             return LoginSuccess(user=User.marshal(user))
 
 
