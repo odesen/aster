@@ -9,26 +9,26 @@ packages = [{include = "aster", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 fastapi = "^0.100.0"
-pydantic = "^2.0.2"
-pydantic-settings = "^2.0.1"
-sqlalchemy = "^2.0.16"
+pydantic = "^2.1.1"
+pydantic-settings = "^2.0.2"
+sqlalchemy = "^2.0.19"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 orjson = "^3.9.1"
 python-dotenv = "^1.0.0"
 psycopg = "^3.1.9"
-strawberry-graphql = "^0.193.1"
-uvicorn = "^0.21.0"
-redis = "^4.5.5"
+strawberry-graphql = "^0.199.1"
+uvicorn = "^0.23.2"
+redis = "^4.6.0"
 alembic = "^1.11.1"
 httpx = "^0.24.1"
 structlog = "^23.1.0"
 arq = "^0.25.0"
-prometheus-fastapi-instrumentator = "^6.0.0"
+prometheus-fastapi-instrumentator = "^6.1.0"
 asgiref = "^3.7.2"
 python-multipart = "^0.0.6"
 typing-extensions = "~4.6.0"
-click = "^8.1.4"
+typer = "^0.9.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.3.2"
@@ -37,8 +37,8 @@ coverage = "^7.2.7"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.277"
-uvicorn = {extras = ["standard"], version = "^0.21.0"}
-strawberry-graphql = {extras = ["debug-server"], version = "^0.193.1"}
+uvicorn = {extras = ["standard"], version = "^0.23.2"}
+strawberry-graphql = {extras = ["debug-server"], version = "^0.199.1"}
 mypy = "^1.4.1"
 pre-commit = "^3.3.3"
 dirty-equals = "^0.6.0"
