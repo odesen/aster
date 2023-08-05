@@ -7,7 +7,7 @@ from aster.posts.schemas import PostCreate
 from httpx import Response
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_post(
     api_register_user: Callable[[dict[str, str]], Coroutine[Any, Any, Response]],
     api_login: Callable[[dict[str, str]], Coroutine[Any, Any, Response]],

@@ -8,7 +8,7 @@ from httpx import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_register(
     api_register_user: Callable[[dict[str, str]], Coroutine[Any, Any, Response]],
     api_login: Callable[[dict[str, str]], Coroutine[Any, Any, Response]],
@@ -41,7 +41,7 @@ async def test_register(
     )
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_block_unblock_user(
     session: AsyncSession,
     api_login: Callable[[dict[str, str]], Coroutine[Any, Any, Response]],

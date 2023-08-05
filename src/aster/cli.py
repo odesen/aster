@@ -1,5 +1,4 @@
-import asyncio
-from typing import Annotated, Callable
+import typing as t
 
 import typer
 
@@ -29,7 +28,7 @@ def version_callback(show_version: bool) -> None:
 
 @app.callback()
 def main(
-    version: Annotated[
+    version: t.Annotated[
         bool,
         typer.Option(
             "--version",
@@ -44,16 +43,16 @@ def main(
 
 @database_app.command("init", help="Initializes a new database.")
 def database_init() -> None:
-    from .database import engine, init_database
+    from .database import init_database
 
     typer.echo("Initializing new database...")
-    asyncio.run(init_database(engine))
+    init_database()
     typer.secho("Success.", fg="green")
 
 
 @database_app.command("drop", help="Drops all data in database.")
 def database_drop(
-    yes: Annotated[
+    yes: t.Annotated[
         bool, typer.Option(help="Silences all confirmation prompts.")
     ] = False
 ) -> None:
@@ -65,18 +64,15 @@ def database_drop(
     if yes or typer.confirm(
         f"Are you sure you want to drop '{config.database_hostname}:{config.database_name}' ?"
     ):
-        drop_database(
-            None,
-            config.database_name,
-        )
+        drop_database()
         typer.secho("Success.", fg=typer.colors.GREEN)
 
 
 @database_app.command("upgrade", help="Upgrades database schema to newest version.")
 def database_upgrade(
-    revision: Annotated[str, typer.Argument(help="Revision identifier.")] = "head",
-    dry_run: Annotated[bool, typer.Option(help="Show SQL or execute it.")] = False,
-) -> Callable[[str, bool], None]:
+    revision: t.Annotated[str, typer.Argument(help="Revision identifier.")] = "head",
+    dry_run: t.Annotated[bool, typer.Option(help="Show SQL or execute it.")] = False,
+) -> t.Callable[[str, bool], None]:
     raise typer.Exit()
 
 

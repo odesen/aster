@@ -1,12 +1,14 @@
 import time
+from argparse import Namespace
 from typing import Annotated, Any, AsyncIterable
 
+import alembic.command
+import alembic.config
 import psycopg
 from fastapi import Depends
 from psycopg import sql
 from sqlalchemy import Engine, event
 from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
@@ -14,7 +16,6 @@ from sqlalchemy.ext.asyncio import (
 from structlog.contextvars import bind_contextvars, get_contextvars
 
 from aster.config import get_settings
-from aster.models import BaseORMModel
 
 engine = create_async_engine(str(get_settings().sqlalchemy_database_url))
 session_factory = async_sessionmaker(engine, expire_on_commit=False)
@@ -58,47 +59,70 @@ def after_cursor_execute(
     )
 
 
-def create_database(url: str, database: str) -> None:
+def create_database() -> None:
     with (
-        psycopg.connect(url, autocommit=True) as conn,
+        psycopg.connect(
+            get_settings().get_sqlalchemy_url(False).render_as_string(False),
+            autocommit=True,
+        ) as conn,
         conn.cursor() as cur,
     ):
-        cur.execute(sql.SQL("CREATE DATABASE {0};").format(sql.Identifier(database)))
+        cur.execute(
+            sql.SQL("CREATE DATABASE {0};").format(
+                sql.Identifier(get_settings().database_name)
+            )
+        )
 
 
-def check_database_exists(url: str, database: str) -> bool:
-    with psycopg.connect(url) as conn, conn.cursor() as cur:
-        cur.execute("SELECT 1 FROM pg_database WHERE datname = %s;", (database,))
+def check_database_exists() -> bool:
+    with psycopg.connect(
+        get_settings().get_sqlalchemy_url(False).render_as_string(False)
+    ) as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT 1 FROM pg_database WHERE datname = %s;",
+            (get_settings().database_name,),
+        )
         res = cur.fetchone()
     return True if res is not None else False
 
 
-async def init_database(engine: AsyncEngine) -> None:
-    config = get_settings()
-    if not check_database_exists(
-        str(config.psycopg_database_url), config.database_name
-    ):
-        create_database(str(config.psycopg_database_url), config.database_name)
-    async with engine.begin() as conn:
-        await conn.run_sync(BaseORMModel.metadata.create_all)
+def init_database() -> None:
+    if not check_database_exists():
+        create_database()
+    upgrade_database()
 
 
-def init_schema() -> None:
-    ...
+def upgrade_database(revision: str = "head", with_data: bool = True) -> None:
+    alembic_cfg = alembic.config.Config(
+        str(get_settings().alembic_ini_path),
+        cmd_opts=Namespace(x=[f"data={with_data!r}"]),
+    )
+    alembic.command.upgrade(alembic_cfg, revision)
 
 
-def drop_database(url: str | None, database: str) -> None:
-    if url is None:
-        url = str(get_settings().psycopg_database_url)
-    with psycopg.connect(url, autocommit=True) as conn, conn.cursor() as cur:
+def downgrade_database(revision: str = "head", with_data: bool = True) -> None:
+    alembic_cfg = alembic.config.Config(
+        str(get_settings().alembic_ini_path),
+        cmd_opts=Namespace(x=[f"data={with_data!r}"]),
+    )
+    alembic.command.downgrade(alembic_cfg, revision)
+
+
+def drop_database() -> None:
+    with psycopg.connect(
+        get_settings().get_sqlalchemy_url(False).render_as_string(False),
+        autocommit=True,
+    ) as conn, conn.cursor() as cur:
         cur.execute(
             """
             SELECT pg_terminate_backend(pg_stat_activity.pid)
             FROM pg_stat_activity
             WHERE pg_stat_activity.datname = %s AND pid <> pg_backend_pid();
             """,
-            (database,),
+            (get_settings().database_name,),
         )
         cur.execute(
-            sql.SQL("DROP DATABASE IF EXISTS {0};").format(sql.Identifier(database))
+            sql.SQL("DROP DATABASE IF EXISTS {0};").format(
+                sql.Identifier(get_settings().database_name)
+            )
         )

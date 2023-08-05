@@ -1,11 +1,17 @@
+import asyncio
 import os
-from typing import Any, AsyncIterable, Callable, Coroutine
+import random
+import string
+from typing import Any, AsyncGenerator, AsyncIterable, Callable, Coroutine, Generator
 
 import pytest
+import pytest_asyncio
 from httpx import AsyncClient, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-os.environ["ASTER_DATABASE_NAME"] = "aster_test"
+os.environ["ASTER_DATABASE_NAME"] = "aster-" + "".join(
+    random.choice(string.ascii_lowercase) for i in range(4)
+)
 
 # ruff: noqa: E402
 
@@ -19,20 +25,29 @@ def anyio_backend() -> str:
     return "asyncio"
 
 
-@pytest.fixture(scope="session", autouse=True)
-async def database(anyio_backend: str) -> Any:
-    await init_database(engine)
-    yield
-    drop_database(str(engine.url), "aster-test")
-
-
 @pytest.fixture(scope="session")
+def event_loop() -> Generator[asyncio.AbstractEventLoop, Any, Any]:
+    """Overrides pytest default function scoped event loop"""
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def database() -> AsyncGenerator[None, Any]:
+    init_database()
+    yield
+    drop_database()
+
+
+@pytest_asyncio.fixture(scope="session")
 async def client(anyio_backend: str) -> AsyncIterable[AsyncClient]:
     async with AsyncClient(app=create_app(), base_url="http://testserver") as ac:
         yield ac
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest_asyncio.fixture(scope="function", autouse=True)
 async def session() -> AsyncIterable[AsyncSession]:
     async with (engine.connect() as conn, conn.begin() as transaction):
         session_factory.configure(bind=conn, join_transaction_mode="create_savepoint")
@@ -43,7 +58,7 @@ async def session() -> AsyncIterable[AsyncSession]:
 # Auth API
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def api_login(
     client: AsyncClient,
 ) -> Callable[[dict[str, str], bool], Coroutine[Any, Any, Response]]:
@@ -58,7 +73,7 @@ async def api_login(
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_register_user(
     client: AsyncClient,
 ) -> Callable[[dict[str, str]], Coroutine[Any, Any, Response]]:
@@ -71,7 +86,7 @@ def api_register_user(
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_list_users(client: AsyncClient) -> Callable[[], Coroutine[Any, Any, Response]]:
     async def _r() -> Response:
         return await client.get(f"{client.base_url}/users")
@@ -79,7 +94,7 @@ def api_list_users(client: AsyncClient) -> Callable[[], Coroutine[Any, Any, Resp
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_get_user(client: AsyncClient) -> Callable[[str], Coroutine[Any, Any, Response]]:
     async def _r(username: str) -> Response:
         return await client.get(f"/users/{username}")
@@ -87,7 +102,7 @@ def api_get_user(client: AsyncClient) -> Callable[[str], Coroutine[Any, Any, Res
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_get_authenticated_user(
     client: AsyncClient,
 ) -> Callable[[], Coroutine[Any, Any, Response]]:
@@ -97,7 +112,7 @@ def api_get_authenticated_user(
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_update_authenticated_user(
     client: AsyncClient,
 ) -> Callable[[], Coroutine[Any, Any, Response]]:
@@ -107,7 +122,7 @@ def api_update_authenticated_user(
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_update_password_authenticated_user(
     client: AsyncClient,
 ) -> Callable[[], Coroutine[Any, Any, Response]]:
@@ -117,7 +132,7 @@ def api_update_password_authenticated_user(
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_list_users_blocked_by_authenticated_user(
     client: AsyncClient,
 ) -> Callable[[], Coroutine[Any, Any, Response]]:
@@ -127,7 +142,7 @@ def api_list_users_blocked_by_authenticated_user(
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_check_user_blocked_by_authenticated_user(
     client: AsyncClient,
 ) -> Callable[[str], Coroutine[Any, Any, Response]]:
@@ -137,7 +152,7 @@ def api_check_user_blocked_by_authenticated_user(
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_block_user(
     client: AsyncClient,
 ) -> Callable[[str], Coroutine[Any, Any, Response]]:
@@ -147,7 +162,7 @@ def api_block_user(
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_unblock_user(
     client: AsyncClient,
 ) -> Callable[[str], Coroutine[Any, Any, Response]]:
@@ -160,7 +175,7 @@ def api_unblock_user(
 # Post API
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_create_post(
     client: AsyncClient,
 ) -> Callable[[PostCreate], Coroutine[Any, Any, Response]]:
@@ -172,7 +187,7 @@ def api_create_post(
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_list_posts(
     client: AsyncClient,
 ) -> Callable[[str], Coroutine[Any, Any, Response]]:
@@ -184,7 +199,7 @@ def api_list_posts(
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_get_post(client: AsyncClient) -> Callable[[int], Coroutine[Any, Any, Response]]:
     async def _r(post_id: int) -> Response:
         return await client.get(f"{client.base_url}/posts/{post_id}")
@@ -192,7 +207,7 @@ def api_get_post(client: AsyncClient) -> Callable[[int], Coroutine[Any, Any, Res
     return _r
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def api_delete_post(
     client: AsyncClient,
 ) -> Callable[[int], Coroutine[Any, Any, Response]]:
