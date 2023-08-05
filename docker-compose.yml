@@ -6,10 +6,9 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command:
+    entrypoint:
       [
-        "server",
-        "start",
+        "uvicorn",
         "aster.api:create_app",
         "--factory",
         "--no-use-colors",

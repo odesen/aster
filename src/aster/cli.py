@@ -1,60 +1,86 @@
 import asyncio
+from typing import Annotated, Callable
 
-import click
-import uvicorn
+import typer
 
 import aster
 
+app = typer.Typer(help="Providing configuration, server, database commands for aster.")
+database_app = typer.Typer()
+server_app = typer.Typer()
 
-@click.group(help="Providing configuration, server, database commands for aster.")
-@click.version_option(aster.ASTER_VERSION)
-def aster_cli() -> None:
-    ...
-
-
-@aster_cli.group(
-    "database",
+app.add_typer(
+    database_app,
+    name="database",
     help="Contains all aster database-related commands (init, heads, history, upgrade, drop).",
 )
-def aster_database() -> None:
+app.add_typer(
+    server_app,
+    name="server",
+    help="Contains all aster server-related commands (start, config)",
+)
+
+
+def version_callback(show_version: bool) -> None:
+    if show_version:
+        typer.echo(f"aster {aster.ASTER_VERSION}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            "-V",
+            help="Print aster version",
+            callback=version_callback,
+        ),
+    ] = False
+) -> None:
     ...
 
 
-@aster_database.command("init", help="Initializes a new database.")
+@database_app.command("init", help="Initializes a new database.")
 def database_init() -> None:
     from .database import engine, init_database
 
-    click.echo("Initializing new database...")
+    typer.echo("Initializing new database...")
     asyncio.run(init_database(engine))
-    click.secho("Success.", fg="green")
+    typer.secho("Success.", fg="green")
 
 
-@aster_database.command("drop", help="Drops all data in database.")
-@click.option("--yes", is_flag=True, help="Silences all confirmation prompts.")
-def database_drop(yes: bool) -> None:
+@database_app.command("drop", help="Drops all data in database.")
+def database_drop(
+    yes: Annotated[
+        bool, typer.Option(help="Silences all confirmation prompts.")
+    ] = False
+) -> None:
     from .config import get_settings
     from .database import drop_database
 
     config = get_settings()
 
-    if yes or click.confirm(
+    if yes or typer.confirm(
         f"Are you sure you want to drop '{config.database_hostname}:{config.database_name}' ?"
     ):
         drop_database(
             None,
             config.database_name,
         )
-        click.secho("Success.", fg="green")
+        typer.secho("Success.", fg=typer.colors.GREEN)
 
 
-@aster_database.command("upgrade", help="Upgrades database schema to newest version.")
-@click.option("--dry-run", is_flag=True, default=False, help="Show SQL or execute it.")
-@click.option("--revision", nargs=1, default="head", help="Revision identifier.")
-def database_upgrade(dry_run: bool, revision: str) -> None:
-    ...
+@database_app.command("upgrade", help="Upgrades database schema to newest version.")
+def database_upgrade(
+    revision: Annotated[str, typer.Argument(help="Revision identifier.")] = "head",
+    dry_run: Annotated[bool, typer.Option(help="Show SQL or execute it.")] = False,
+) -> Callable[[str, bool], None]:
+    raise typer.Exit()
 
 
-@aster_database.command("heads", help="Shows the heads of the database.")
+@database_app.command("heads", help="Shows the heads of the database.")
 def database_head() -> None:
     from alembic.command import heads
     from alembic.config import Config as AlembicConfig
@@ -67,7 +93,7 @@ def database_head() -> None:
     heads(alembic_cfg)
 
 
-@aster_database.command("history", help="Shows the history of the database.")
+@database_app.command("history", help="Shows the history of the database.")
 def database_history() -> None:
     from alembic.command import history
     from alembic.config import Config as AlembicConfig
@@ -80,27 +106,17 @@ def database_history() -> None:
     history(alembic_cfg)
 
 
-@aster_cli.group(
-    "server", help="Contains all aster server-related commands (start, config)"
-)
-def aster_server() -> None:
-    ...
-
-
-@aster_server.command("config", help="Prints the current config")
+@server_app.command("config", help="Prints the current config")
 def server_config() -> None:
     from .config import get_settings
 
-    click.secho(get_settings().model_dump(), fg="blue")
-
-
-aster_server.add_command(uvicorn.main, name="start")
+    typer.secho(get_settings().model_dump(), fg=typer.colors.BLUE)
 
 
 def entrypoint() -> None:
     from .exceptions import AsterException
 
     try:
-        aster_cli()
+        app()
     except AsterException as exc:
-        click.secho(f"ERROR: {exc}", bold=True, fg="red")
+        typer.secho(f"ERROR: {exc}", bold=True, fg=typer.colors.RED)
