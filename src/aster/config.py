@@ -4,11 +4,11 @@ from functools import cached_property, lru_cache
 from pathlib import Path
 from typing import Annotated
 
+import sqlalchemy as sa
 import structlog
 from fastapi import Depends
 from pydantic import (
     AnyHttpUrl,
-    DirectoryPath,
     Field,
     FilePath,
     PostgresDsn,
@@ -39,6 +39,20 @@ class AppSettings(BaseSettings):
     database_engine_pool_size: int = 20
     database_engine_max_overflow: int = 0
 
+    def get_sqlalchemy_url(self, with_name: bool = True) -> sa.URL:
+        try:
+            url = PostgresDsn(
+                f"{self.database_scheme}://{self.database_credential_user.get_secret_value()}:{self.database_credential_password.get_secret_value()}@{self.database_hostname}:{str(self.database_port)}/{self.database_name}"
+            )
+        except ValidationError:
+            logger.exception("Invalid sqlalchemy url")
+        sqlalchemy_url = sa.make_url(str(url))
+        if not with_name:
+            sqlalchemy_url = sqlalchemy_url._replace(
+                drivername="postgresql", database=None
+            )
+        return sqlalchemy_url
+
     @computed_field(repr=False)  # type: ignore[misc]
     @cached_property
     def sqlalchemy_database_url(self) -> PostgresDsn:
@@ -62,7 +76,7 @@ class AppSettings(BaseSettings):
         return url
 
     alembic_ini_path: FilePath = "alembic.ini"  # type: ignore
-    alembic_revision_path: DirectoryPath = "alembic"  # type: ignore
+    # alembic_revision_path: DirectoryPath = "alembic"  # type: ignore
 
     redis_url: RedisDsn | None = None
 
@@ -77,7 +91,7 @@ class AppSettings(BaseSettings):
 
 @lru_cache()
 def get_settings() -> AppSettings:
-    return AppSettings(**{})
+    return AppSettings()
 
 
 InjectSettings = Annotated[AppSettings, Depends(get_settings)]

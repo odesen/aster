@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import (
 from structlog.contextvars import bind_contextvars, get_contextvars
 
 from aster.config import get_settings
-from aster.models import BaseModel
+from aster.models import BaseORMModel
 
 engine = create_async_engine(str(get_settings().sqlalchemy_database_url))
 session_factory = async_sessionmaker(engine, expire_on_commit=False)
@@ -80,7 +80,7 @@ async def init_database(engine: AsyncEngine) -> None:
     ):
         create_database(str(config.psycopg_database_url), config.database_name)
     async with engine.begin() as conn:
-        await conn.run_sync(BaseModel.metadata.create_all)
+        await conn.run_sync(BaseORMModel.metadata.create_all)
 
 
 def init_schema() -> None:

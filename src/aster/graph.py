@@ -5,17 +5,16 @@ from typing import Annotated, Self, Union
 
 import strawberry
 
-from aster.auth import models as auth_models
 from aster.auth.services import get_user_by_username
 from aster.auth.utils import verify_password
 from aster.database import session_factory
-from aster.posts import models as post_models
+from aster.models import Post, User
 from aster.posts.services import get_post_by_id
 
 
 @strawberry.type
 class LoginSuccess:
-    user: User
+    user: UserSchema
 
 
 @strawberry.type
@@ -29,41 +28,41 @@ LoginResult = Annotated[
 
 
 @strawberry.type
-class Post:
+class PostSchema:
     id: strawberry.ID
     content: str
     created_at: datetime
-    user: User
+    user: UserSchema
 
     @classmethod
-    def marshal(cls, model: post_models.Post) -> Self:
+    def marshal(cls, model: Post) -> Self:
         return cls(
             id=strawberry.ID(str(model.id)),
             content=model.content,
             created_at=model.created_at,
-            user=User.marshal(model.user),
+            user=UserSchema.marshal(model.user),
         )
 
 
 @strawberry.type
-class User:
+class UserSchema:
     id: strawberry.ID
     username: str
 
     @classmethod
-    def marshal(cls, model: auth_models.User) -> Self:
+    def marshal(cls, model: User) -> Self:
         return cls(id=strawberry.ID(str(model.id)), username=model.username)
 
 
 @strawberry.type
 class Query:
     @strawberry.field
-    async def post(self, id: strawberry.ID) -> Post:
+    async def post(self, id: strawberry.ID) -> PostSchema:
         async with session_factory.begin() as session:
             post = await get_post_by_id(session, post_id=int(id))
             if not post:
                 raise Exception
-            return Post.marshal(post)
+            return PostSchema.marshal(post)
 
 
 @strawberry.type
@@ -76,7 +75,7 @@ class Mutation:
                 return LoginError(message="Something went wrong")
             if not verify_password(password, user.password):
                 return LoginError(message="Something went wrong")
-            return LoginSuccess(user=User.marshal(user))
+            return LoginSuccess(user=UserSchema.marshal(user))
 
 
 schema = strawberry.Schema(Query, mutation=Mutation)

@@ -1,9 +1,9 @@
 from typing import Annotated
 
 from aster.database import InjectSession
+from aster.models import Post
 from fastapi import Depends, HTTPException, status
 
-from .models import Post
 from .services import get_post_by_id
 
 

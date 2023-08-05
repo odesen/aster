@@ -89,7 +89,6 @@ def database_head() -> None:
 
     config = get_settings()
     alembic_cfg = AlembicConfig(str(config.alembic_ini_path))
-    alembic_cfg.set_main_option("script_location", str(config.alembic_revision_path))
     heads(alembic_cfg)
 
 
@@ -102,7 +101,6 @@ def database_history() -> None:
 
     config = get_settings()
     alembic_cfg = AlembicConfig(str(config.alembic_ini_path))
-    alembic_cfg.set_main_option("script_location", str(config.alembic_revision_path))
     history(alembic_cfg)
 
 

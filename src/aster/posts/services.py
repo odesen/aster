@@ -1,11 +1,10 @@
 from typing import Sequence
 
-from aster.auth.models import User
+from aster.models import Post, User
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, joinedload
 
-from .models import Post
 from .schemas import PostCreate
 
 

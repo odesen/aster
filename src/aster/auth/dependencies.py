@@ -3,11 +3,11 @@ from typing import Annotated
 
 from aster.config import InjectSettings
 from aster.database import InjectSession
+from aster.models import User
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 
-from .models import User
 from .schemas import JWTToken, TokenResponse
 from .services import get_user_by_username
 from .utils import verify_password
