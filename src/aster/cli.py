@@ -43,7 +43,7 @@ def main(
 
 @database_app.command("init", help="Initializes a new database.")
 def database_init() -> None:
-    from .database import init_database
+    from aster.database import init_database
 
     typer.echo("Initializing new database...")
     init_database()
@@ -56,8 +56,8 @@ def database_drop(
         bool, typer.Option(help="Silences all confirmation prompts.")
     ] = False
 ) -> None:
-    from .config import get_settings
-    from .database import drop_database
+    from aster.config import get_settings
+    from aster.database import drop_database
 
     config = get_settings()
 
@@ -72,8 +72,10 @@ def database_drop(
 def database_upgrade(
     revision: t.Annotated[str, typer.Argument(help="Revision identifier.")] = "head",
     dry_run: t.Annotated[bool, typer.Option(help="Show SQL or execute it.")] = False,
-) -> t.Callable[[str, bool], None]:
-    raise typer.Exit()
+) -> None:
+    from aster.database import upgrade_database
+
+    upgrade_database(revision, sql=dry_run)
 
 
 @database_app.command("heads", help="Shows the heads of the database.")
@@ -81,7 +83,7 @@ def database_head() -> None:
     from alembic.command import heads
     from alembic.config import Config as AlembicConfig
 
-    from .config import get_settings
+    from aster.config import get_settings
 
     config = get_settings()
     alembic_cfg = AlembicConfig(str(config.alembic_ini_path))
@@ -93,7 +95,7 @@ def database_history() -> None:
     from alembic.command import history
     from alembic.config import Config as AlembicConfig
 
-    from .config import get_settings
+    from aster.config import get_settings
 
     config = get_settings()
     alembic_cfg = AlembicConfig(str(config.alembic_ini_path))
@@ -102,7 +104,7 @@ def database_history() -> None:
 
 @server_app.command("config", help="Prints the current config")
 def server_config() -> None:
-    from .config import get_settings
+    from aster.config import get_settings
 
     typer.secho(get_settings().model_dump(), fg=typer.colors.BLUE)
 

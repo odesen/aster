@@ -1,5 +1,4 @@
 import time
-from argparse import Namespace
 from typing import Annotated, Any, AsyncIterable
 
 import alembic.command
@@ -92,18 +91,16 @@ def init_database() -> None:
     upgrade_database()
 
 
-def upgrade_database(revision: str = "head", with_data: bool = True) -> None:
+def upgrade_database(revision: str = "head", sql: bool = False) -> None:
     alembic_cfg = alembic.config.Config(
         str(get_settings().alembic_ini_path),
-        cmd_opts=Namespace(x=[f"data={with_data!r}"]),
     )
-    alembic.command.upgrade(alembic_cfg, revision)
+    alembic.command.upgrade(alembic_cfg, revision, sql=sql)
 
 
-def downgrade_database(revision: str = "head", with_data: bool = True) -> None:
+def downgrade_database(revision: str = "head") -> None:
     alembic_cfg = alembic.config.Config(
         str(get_settings().alembic_ini_path),
-        cmd_opts=Namespace(x=[f"data={with_data!r}"]),
     )
     alembic.command.downgrade(alembic_cfg, revision)
 
