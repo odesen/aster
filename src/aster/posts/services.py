@@ -1,4 +1,4 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 from aster.models import Post, User
 from sqlalchemy import desc, select

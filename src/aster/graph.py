@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated, Self, Union
+from typing import Annotated, Self
 
 import strawberry
 
@@ -22,9 +22,7 @@ class LoginError:
     message: str
 
 
-LoginResult = Annotated[
-    Union[LoginSuccess, LoginError], strawberry.union("LoginResult")
-]
+LoginResult = Annotated[LoginSuccess | LoginError, strawberry.union("LoginResult")]
 
 
 @strawberry.type

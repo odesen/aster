@@ -17,9 +17,7 @@ InjectFormOAuth2 = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
 async def authenticate_user(
-    session: InjectSession,
-    form: InjectFormOAuth2,
-    config: InjectSettings,
+    session: InjectSession, form: InjectFormOAuth2, config: InjectSettings
 ) -> TokenResponse:
     user = await get_user_by_username(session, username=form.username)
     if not user:
@@ -52,9 +50,7 @@ InjectUser = Annotated[User, Depends(get_valid_user_by_username)]
 
 
 async def get_current_user(
-    token: InjectToken,
-    session: InjectSession,
-    config: InjectSettings,
+    token: InjectToken, session: InjectSession, config: InjectSettings
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -66,11 +62,9 @@ async def get_current_user(
         decoded_token = JWTToken(**payload)
         if decoded_token.sub is None:
             raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    user: User | None = await get_user_by_username(
-        session=session, username=decoded_token.sub
-    )
+    except JWTError as err:
+        raise credentials_exception from err
+    user: User | None = await get_user_by_username(session=session, username=decoded_token.sub)
     if user is None:
         raise credentials_exception
     return user
@@ -79,9 +73,7 @@ async def get_current_user(
 InjectAuthenticatedUser = Annotated[User, Depends(get_current_user)]
 
 
-async def get_current_active_user(
-    current_user: InjectAuthenticatedUser,
-) -> User:
+async def get_current_active_user(current_user: InjectAuthenticatedUser) -> User:
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user

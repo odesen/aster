@@ -89,7 +89,7 @@ class AppSettings(BaseSettings):
     access_token_expire_minutes: int = 30
 
 
-@lru_cache()
+@lru_cache
 def get_settings() -> AppSettings:
     return AppSettings()
 

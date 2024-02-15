@@ -1,4 +1,5 @@
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 from urllib.parse import urlencode
 
 from fastapi import Request
@@ -40,8 +41,6 @@ class RedisCache:
     async def close(self) -> None:
         await self._redis.close()
 
-    def build_cache_key(
-        self, request: Request, cache_key_builder: CacheKeyBuilder | None
-    ) -> str:
+    def build_cache_key(self, request: Request, cache_key_builder: CacheKeyBuilder | None) -> str:
         key_builder = cache_key_builder or self.key_builder
         return key_builder(request)

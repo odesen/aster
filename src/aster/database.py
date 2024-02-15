@@ -1,5 +1,6 @@
 import time
-from typing import Annotated, Any, AsyncIterable
+from collections.abc import AsyncIterable
+from typing import Annotated, Any
 
 import alembic.command
 import alembic.config
@@ -7,11 +8,7 @@ import psycopg
 from fastapi import Depends
 from psycopg import sql
 from sqlalchemy import Engine, event
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from structlog.contextvars import bind_contextvars, get_contextvars
 
 from aster.config import get_settings
@@ -30,24 +27,14 @@ InjectSession = Annotated[AsyncSession, Depends(get_session)]
 
 @event.listens_for(Engine, "before_cursor_execute")
 def before_cursor_execute(
-    conn: Any,
-    cursor: Any,
-    statement: Any,
-    parameters: Any,
-    context: Any,
-    executemany: Any,
+    conn: Any, cursor: Any, statement: Any, parameters: Any, context: Any, executemany: Any
 ) -> None:
     conn.info["query_start_time"] = time.time()
 
 
 @event.listens_for(Engine, "after_cursor_execute")
 def after_cursor_execute(
-    conn: Any,
-    cursor: Any,
-    statement: Any,
-    parameters: Any,
-    context: Any,
-    executemany: Any,
+    conn: Any, cursor: Any, statement: Any, parameters: Any, context: Any, executemany: Any
 ) -> None:
     end_time = time.time()
     bind_contextvars(
@@ -61,15 +48,12 @@ def after_cursor_execute(
 def create_database() -> None:
     with (
         psycopg.connect(
-            get_settings().get_sqlalchemy_url(False).render_as_string(False),
-            autocommit=True,
+            get_settings().get_sqlalchemy_url(False).render_as_string(False), autocommit=True
         ) as conn,
         conn.cursor() as cur,
     ):
         cur.execute(
-            sql.SQL("CREATE DATABASE {0};").format(
-                sql.Identifier(get_settings().database_name)
-            )
+            sql.SQL("CREATE DATABASE {0};").format(sql.Identifier(get_settings().database_name))
         )
 
 
@@ -78,11 +62,10 @@ def check_database_exists() -> bool:
         get_settings().get_sqlalchemy_url(False).render_as_string(False)
     ) as conn, conn.cursor() as cur:
         cur.execute(
-            "SELECT 1 FROM pg_database WHERE datname = %s;",
-            (get_settings().database_name,),
+            "SELECT 1 FROM pg_database WHERE datname = %s;", (get_settings().database_name,)
         )
         res = cur.fetchone()
-    return True if res is not None else False
+    return res is not None
 
 
 def init_database() -> None:
@@ -92,23 +75,18 @@ def init_database() -> None:
 
 
 def upgrade_database(revision: str = "head", sql: bool = False) -> None:
-    alembic_cfg = alembic.config.Config(
-        str(get_settings().alembic_ini_path),
-    )
+    alembic_cfg = alembic.config.Config(str(get_settings().alembic_ini_path))
     alembic.command.upgrade(alembic_cfg, revision, sql=sql)
 
 
 def downgrade_database(revision: str = "head") -> None:
-    alembic_cfg = alembic.config.Config(
-        str(get_settings().alembic_ini_path),
-    )
+    alembic_cfg = alembic.config.Config(str(get_settings().alembic_ini_path))
     alembic.command.downgrade(alembic_cfg, revision)
 
 
 def drop_database() -> None:
     with psycopg.connect(
-        get_settings().get_sqlalchemy_url(False).render_as_string(False),
-        autocommit=True,
+        get_settings().get_sqlalchemy_url(False).render_as_string(False), autocommit=True
     ) as conn, conn.cursor() as cur:
         cur.execute(
             """

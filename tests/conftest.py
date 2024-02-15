@@ -1,10 +1,9 @@
-import asyncio
 import os
 import random
 import string
-from typing import Any, AsyncGenerator, AsyncIterable, Callable, Coroutine, Generator
+from collections.abc import AsyncGenerator, AsyncIterable, Callable, Coroutine
+from typing import Any
 
-import pytest
 import pytest_asyncio
 from httpx import AsyncClient, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,20 +19,6 @@ from aster.database import drop_database, engine, init_database, session_factory
 from aster.posts.schemas import PostCreate
 
 
-@pytest.fixture(scope="session")
-def anyio_backend() -> str:
-    return "asyncio"
-
-
-@pytest.fixture(scope="session")
-def event_loop() -> Generator[asyncio.AbstractEventLoop, Any, Any]:
-    """Overrides pytest default function scoped event loop"""
-    policy = asyncio.get_event_loop_policy()
-    loop = policy.new_event_loop()
-    yield loop
-    loop.close()
-
-
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def database() -> AsyncGenerator[None, Any]:
     init_database()
@@ -42,14 +27,14 @@ async def database() -> AsyncGenerator[None, Any]:
 
 
 @pytest_asyncio.fixture(scope="session")
-async def client(anyio_backend: str) -> AsyncIterable[AsyncClient]:
+async def client() -> AsyncIterable[AsyncClient]:
     async with AsyncClient(app=create_app(), base_url="http://testserver") as ac:
         yield ac
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def session() -> AsyncIterable[AsyncSession]:
-    async with (engine.connect() as conn, conn.begin() as transaction):
+    async with engine.connect() as conn, conn.begin() as transaction:
         session_factory.configure(bind=conn, join_transaction_mode="create_savepoint")
         yield session_factory()
         await transaction.rollback()
@@ -65,9 +50,7 @@ async def api_login(
     async def _r(data_in: dict[str, str], update_token: bool = True) -> Response:
         res = await client.post(f"{client.base_url}/login", data=data_in)
         if update_token:
-            client.headers[
-                "Authorization"
-            ] = f"""Bearer {res.json().get("access_token", "")}"""
+            client.headers["Authorization"] = f"""Bearer {res.json().get("access_token", "")}"""
         return res
 
     return _r
@@ -78,10 +61,7 @@ def api_register_user(
     client: AsyncClient,
 ) -> Callable[[dict[str, str]], Coroutine[Any, Any, Response]]:
     async def _r(data_in: dict[str, str]) -> Response:
-        return await client.post(
-            f"{client.base_url}/users/register",
-            json=data_in,
-        )
+        return await client.post(f"{client.base_url}/users/register", json=data_in)
 
     return _r
 
@@ -103,9 +83,7 @@ def api_get_user(client: AsyncClient) -> Callable[[str], Coroutine[Any, Any, Res
 
 
 @pytest_asyncio.fixture
-def api_get_authenticated_user(
-    client: AsyncClient,
-) -> Callable[[], Coroutine[Any, Any, Response]]:
+def api_get_authenticated_user(client: AsyncClient) -> Callable[[], Coroutine[Any, Any, Response]]:
     async def _r() -> Response:
         return await client.get(f"{client.base_url}/user")
 
@@ -153,9 +131,7 @@ def api_check_user_blocked_by_authenticated_user(
 
 
 @pytest_asyncio.fixture
-def api_block_user(
-    client: AsyncClient,
-) -> Callable[[str], Coroutine[Any, Any, Response]]:
+def api_block_user(client: AsyncClient) -> Callable[[str], Coroutine[Any, Any, Response]]:
     async def _r(username: str) -> Response:
         return await client.put(f"{client.base_url}/user/blocks/{username}")
 
@@ -163,9 +139,7 @@ def api_block_user(
 
 
 @pytest_asyncio.fixture
-def api_unblock_user(
-    client: AsyncClient,
-) -> Callable[[str], Coroutine[Any, Any, Response]]:
+def api_unblock_user(client: AsyncClient) -> Callable[[str], Coroutine[Any, Any, Response]]:
     async def _r(username: str) -> Response:
         return await client.delete(f"{client.base_url}/user/blocks/{username}")
 
@@ -176,25 +150,17 @@ def api_unblock_user(
 
 
 @pytest_asyncio.fixture
-def api_create_post(
-    client: AsyncClient,
-) -> Callable[[PostCreate], Coroutine[Any, Any, Response]]:
+def api_create_post(client: AsyncClient) -> Callable[[PostCreate], Coroutine[Any, Any, Response]]:
     async def _r(data_in: PostCreate) -> Response:
-        return await client.post(
-            f"{client.base_url}/posts", content=data_in.model_dump_json()
-        )
+        return await client.post(f"{client.base_url}/posts", content=data_in.model_dump_json())
 
     return _r
 
 
 @pytest_asyncio.fixture
-def api_list_posts(
-    client: AsyncClient,
-) -> Callable[[str], Coroutine[Any, Any, Response]]:
+def api_list_posts(client: AsyncClient) -> Callable[[str], Coroutine[Any, Any, Response]]:
     async def _r(username: str) -> Response:
-        return await client.get(
-            f"{client.base_url}/posts", params={"username": username}
-        )
+        return await client.get(f"{client.base_url}/posts", params={"username": username})
 
     return _r
 
@@ -208,9 +174,7 @@ def api_get_post(client: AsyncClient) -> Callable[[int], Coroutine[Any, Any, Res
 
 
 @pytest_asyncio.fixture
-def api_delete_post(
-    client: AsyncClient,
-) -> Callable[[int], Coroutine[Any, Any, Response]]:
+def api_delete_post(client: AsyncClient) -> Callable[[int], Coroutine[Any, Any, Response]]:
     async def _r(post_id: int) -> Response:
         return await client.delete(f"{client.base_url}/posts/{post_id}")
 

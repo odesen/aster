@@ -1,18 +1,14 @@
 import atexit
 import logging
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from logging.handlers import QueueHandler, QueueListener
 from queue import Queue
-from typing import Any, Callable
+from typing import Any
 
 import orjson
 import structlog
-from structlog.types import (
-    BindableLogger,
-    FilteringBoundLogger,
-    Processor,
-    WrappedLogger,
-)
+from structlog.types import BindableLogger, FilteringBoundLogger, Processor, WrappedLogger
 
 
 def default_structlog_processors() -> list[Processor]:
@@ -40,9 +36,7 @@ class StructLoggingConfig:
         - requires 'structlog' to be installed.
     """
 
-    processors: list[Processor] | None = field(
-        default_factory=default_structlog_processors
-    )
+    processors: list[Processor] | None = field(default_factory=default_structlog_processors)
     """Iterable of structlog logging processors."""
     wrapper_class: type[BindableLogger] | None = field(
         default_factory=default_structlog_wrapper_class
@@ -51,15 +45,13 @@ class StructLoggingConfig:
     context_class: dict[str, Any] | None = None
     """Context class (a 'contextvar' context) for the logger."""
     logger_factory: Callable[..., WrappedLogger] | None = field(
-        default_factory=default_logger_factory,
+        default_factory=default_logger_factory
     )
     """Logger factory to use."""
     cache_logger_on_first_use: bool = field(default=True)
     """Whether to cache the logger configuration and reuse."""
 
-    def configure(
-        self,
-    ) -> Callable[..., FilteringBoundLogger]:
+    def configure(self) -> Callable[..., FilteringBoundLogger]:
         """Return logger with the given configuration.
         Returns:
             A 'logging.getLogger' like function.
@@ -81,11 +73,7 @@ def resolve_handlers(handlers: list[Any]) -> list[Any]:
 class QueueListenerHandler(QueueHandler):
     def __init__(self, handlers: list[Any] | None = None) -> None:
         super().__init__(Queue(-1))
-        if handlers:
-            handlers = resolve_handlers(handlers)
-        else:
-            handlers = [logging.StreamHandler()]
-
+        handlers = resolve_handlers(handlers) if handlers else [logging.StreamHandler()]
         self.listener = QueueListener(self.queue, *handlers)
         self.listener.start()
 

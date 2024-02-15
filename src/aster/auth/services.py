@@ -1,4 +1,4 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 from aster.auth.utils import get_password_hash
 from aster.models import User, UserBlock
@@ -29,16 +29,12 @@ async def list_users(session: AsyncSession) -> Sequence[User]:
     return result.scalars().all()
 
 
-async def list_users_blocked_by_user(
-    session: AsyncSession, *, username: str
-) -> Sequence[User]:
+async def list_users_blocked_by_user(session: AsyncSession, *, username: str) -> Sequence[User]:
     UserBlocked = aliased(User)
     result = await session.execute(
         select(UserBlocked).where(
             UserBlocked.id.in_(
-                select(UserBlock.uid_blocked)
-                .join(UserBlock.user)
-                .where(User.username == username)
+                select(UserBlock.uid_blocked).join(UserBlock.user).where(User.username == username)
             )
         )
     )
@@ -58,35 +54,27 @@ async def check_if_user_blocked_by_user(
         )
     )
     res = await session.execute(stmt)
-    return True if res.first() is not None else False
+    return res.first() is not None
 
 
-async def block_user(
-    session: AsyncSession, *, user: User, username_to_block: str
-) -> None:
+async def block_user(session: AsyncSession, *, user: User, username_to_block: str) -> None:
     user_to_block = await get_user_by_username(session, username=username_to_block)
     if not user_to_block:
         raise Exception
     result = await session.execute(
-        select(UserBlock).where(
-            UserBlock.uid == user.id, UserBlock.uid_blocked == user_to_block.id
-        )
+        select(UserBlock).where(UserBlock.uid == user.id, UserBlock.uid_blocked == user_to_block.id)
     )
-    True if result.first() else False  # TODO: 304 or new block
+    bool(result.first())
     session.add(UserBlock(uid=user.id, uid_blocked=user_to_block.id))
     await session.flush()
 
 
-async def unblock_user(
-    session: AsyncSession, *, user: User, username_to_unblock: str
-) -> None:
+async def unblock_user(session: AsyncSession, *, user: User, username_to_unblock: str) -> None:
     user_to_block = await get_user_by_username(session, username=username_to_unblock)
     if not user_to_block:
         raise Exception
     result = await session.execute(
-        select(UserBlock).where(
-            UserBlock.uid == user.id, UserBlock.uid_blocked == user_to_block.id
-        )
+        select(UserBlock).where(UserBlock.uid == user.id, UserBlock.uid_blocked == user_to_block.id)
     )
     user_block = result.scalar_one_or_none()
     if not user_block:

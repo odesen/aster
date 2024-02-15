@@ -1,58 +1,46 @@
-[tool.poetry]
+[project]
 name = "aster"
-version = "0.3.0"
-description = ""
-authors = ["odesen <0d3s3n@gmail.com>"]
-readme = "README.md"
-packages = [{include = "aster", from = "src"}]
+licence = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "odesen", email = "0d3s3n@gmail.com" }]
+keywords = []
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+    "fastapi",
+    "pydantic",
+    "pydantic-settings",
+    "sqlalchemy",
+    "psycopg",
+    "alembic",
+    "httpx",
+    "structlog",
+    "typer",
+    "redis",
+    "python-jose",
+    "passlib",
+    "uvicorn",
+    "arq",
+    "orjson",
+    "strawberry-graphql",
+    "prometheus-fastapi-instrumentator",
+    "python-multipart",
+    "asgiref",
+]
+dynamic = ["version"]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-fastapi = "^0.100.0"
-pydantic = "^2.1.1"
-pydantic-settings = "^2.0.2"
-sqlalchemy = "^2.0.19"
-python-jose = {extras = ["cryptography"], version = "^3.3.0"}
-passlib = {extras = ["bcrypt"], version = "^1.7.4"}
-orjson = "^3.9.1"
-python-dotenv = "^1.0.0"
-psycopg = "^3.1.9"
-strawberry-graphql = "^0.201.1"
-uvicorn = "^0.23.2"
-redis = "^4.6.0"
-alembic = "^1.11.1"
-httpx = "^0.24.1"
-structlog = "^23.1.0"
-arq = "^0.25.0"
-prometheus-fastapi-instrumentator = "^6.1.0"
-asgiref = "^3.7.2"
-python-multipart = "^0.0.6"
-typing-extensions = "~4.6.0"
-typer = "^0.9.0"
-
-[tool.poetry.group.test.dependencies]
-pytest = "^7.3.2"
-black = "^23.3.0"
-coverage = "^7.2.7"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.0.277"
-uvicorn = {extras = ["standard"], version = "^0.23.2"}
-strawberry-graphql = {extras = ["debug-server"], version = "^0.201.1"}
-mypy = "^1.4.1"
-pre-commit = "^3.3.3"
-dirty-equals = "^0.6.0"
-rich = "^13.4.2"
-pytest-asyncio = "^0.21.1"
-
-[tool.poetry.group.ci.dependencies]
-dagger-io = "^0.6.2"
-
-[tool.poetry.group.docs]
-optional = true
-
-[tool.poetry.group.docs.dependencies]
-mkdocs = "*"
+[project.optional-dependencies]
+test = ["pytest", "pytest-asyncio", "coverage[toml]", "dirty-equals"]
+dev = ["ruff", "mypy", "rich"]
+ci = ["dagger-io"]
+docs = ["mkdocs"]
 
 [tool.black]
 line-length = 88
@@ -97,30 +85,45 @@ module = [
 ignore_missing_imports = true
 
 [tool.ruff]
+line-length = 100
+indent-width = 4
+target-version = "py310"
+
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+skip-magic-trailing-comma = true
+line-ending = "auto"
+
+[tool.ruff.lint]
 select = [
     # pycodestyle
     "E",
-    "W",
-    # pyflakes
+    # Pyflakes
     "F",
-    # flake-8
-    "C",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
     "B",
+    # flake8-simplify
+    "SIM",
     # isort
     "I",
 ]
 
 ignore = [
-    "E501",  # line too long, handled by black
-    "B008",  # do not perform function calls in argument defaults
-    "C901",  # too complex
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
+    "C901", # too complex
 ]
 
+fixable = ["ALL"]
+unfixable = []
+
 [tool.pytest.ini_options]
-addopts = [
-    "--strict-config",
-    "--strict-markers"
-]
+addopts = ["--import-mode=importlib", "--strict-config", "--strict-markers"]
 xfail_strict = true
 filterwarnings = [
     # For passlib
@@ -128,12 +131,17 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
+source_pkgs = ["aster", "tests"]
+branch = true
 parallel = true
-source = [
-    "tests",
-    "src"
-]
+
+[tool.coverage.paths]
+aster = ["src/aster", "*/aster/src/aster"]
+tests = ["tests", "*/aster/tests"]
+
+[tool.hatch.version]
+path = "src/aster/_version.py"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
